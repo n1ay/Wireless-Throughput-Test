@@ -19,9 +19,9 @@ class Argument:
 
         if self.value <= self.max_val:
             if self.get_next_value_method == 'multiply':
-                self.value = self.value*2
+                self.value = min(self.value*2, self.max_val)
             elif self.get_next_value_method == 'add':
-                self.value += self.min_val
+                self.value = min(self.min_val+self.value, self.max_val)
 
         return ret_value
 
