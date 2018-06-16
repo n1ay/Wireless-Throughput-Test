@@ -1,9 +1,12 @@
 import sys
 import subprocess
-sys.path.append('./argument.py')
+sys.path.append('../Database/')
 from argument import Argument
+from throughput_measure import ThroughputMeasure
+from wireless_throughput_test_repository import WirelessThroughputTestRepository
 import copy
 import time
+
 
 # ----------------------config----------------------------------
 command = 'iperf3'
@@ -24,7 +27,7 @@ delay_between_tests = 0.2
 # --------------------------------------------------------------
 
 
-def command_builder(command, ip, time_per_test, delay_between_tests, transport_layer_protocol, reversed_transmission_direction):
+def command_builder(command, ip, time_per_test, transport_layer_protocol, reversed_transmission_direction):
     args = []
 
     if reversed_transmission_direction:
@@ -48,15 +51,40 @@ def command_builder(command, ip, time_per_test, delay_between_tests, transport_l
                      max_val=tcp_args_domains[2][1], get_next_value_method='add')]
         command_prefix += tcp_args_extra
 
+    return command_prefix, args
+
+
+def perform_test(command_prefix, args, transport_layer_protocol, reversed_transmission_direction, store_in_db):
+
+    if store_in_db:
+        repository = WirelessThroughputTestRepository()
+        test_id = repository.add_test()
+        if transport_layer_protocol == 'udp':
+            if reversed_transmission_direction:
+                collection = WirelessThroughputTestRepository.UDP_R
+            else:
+                collection = WirelessThroughputTestRepository.UDP
+        elif transport_layer_protocol == 'tcp':
+            if reversed_transmission_direction:
+                collection = WirelessThroughputTestRepository.TCP_R
+            else:
+                collection = WirelessThroughputTestRepository.TCP
+
     while(True):
         actual_command = copy.copy(command_prefix)
         for i in args:
             actual_command.append(i.flag)
             actual_command.append(str(i.value))
 
-        print(actual_command)
         throughput = command_executor(actual_command, transport_layer_protocol, reversed_transmission_direction)
-        print(throughput)
+        throughput_measure = ThroughputMeasure(throughput, test_id)
+        for i in args:
+            throughput_measure.args[i.name]=i.value
+
+        print(throughput_measure)
+
+        if store_in_db:
+            repository.add(collection, throughput_measure)
 
         has_max_value_list = [argument.has_max_value() for argument in args]
         if all(has_max_value_list):
@@ -106,6 +134,16 @@ def command_executor(command, transport_layer_protocol, reversed_transmission_di
     throughput=float(throughput)*metric_prefix
     return throughput
 
+def perform_all_tests(command_prefix, args, store_in_db):
+    perform_test(command_prefix, args, transport_layer_protocol='udp', reversed_transmission_direction=False,
+                 store_in_db=store_in_db)
+    perform_test(command_prefix, args, transport_layer_protocol='udp', reversed_transmission_direction=True,
+                 store_in_db=store_in_db)
+    perform_test(command_prefix, args, transport_layer_protocol='tcp', reversed_transmission_direction=False,
+                 store_in_db=store_in_db)
+    perform_test(command_prefix, args, transport_layer_protocol='tcp', reversed_transmission_direction=True,
+                 store_in_db=store_in_db)
+
 def main():
     if len(sys.argv) < 2:
         print('Please provide server\'s ip address as an argument')
@@ -114,8 +152,9 @@ def main():
         print('Only one argument is needed')
         exit(-1)
     ip = sys.argv[1]
-    command_builder(command, ip, time_per_test, delay_between_tests, transport_layer_protocol='tcp', reversed_transmission_direction=True)
-    #print(command_executor(['iperf3', '-c', '172.16.0.103', '-t', '1', '-R', '-u', '-b', '0', '-l', '256'], 'udp', True))
+
+    command_prefix, args = command_builder(command, ip, time_per_test, transport_layer_protocol='udp', reversed_transmission_direction=True)
+    perform_test(command_prefix, args, transport_layer_protocol='udp', reversed_transmission_direction=True, store_in_db=True)
 
 if __name__ == '__main__':
     main()
