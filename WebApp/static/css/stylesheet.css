@@ -1,0 +1,50 @@
+* {
+    font-size: 12px;
+}
+
+.flex-container-row {
+    display: flex;
+    flex-direction: row;
+    margin: 0 auto;
+    padding: 10px;
+}
+
+.flex-container-column {
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+    padding: 10px;
+}
+
+.flex-container-row, .flex-container-column > * {
+    flex: auto;
+}
+
+.header-contents h1 {
+    font-size: 60px;
+    font-weight: 300;
+    text-align: center;
+}
+
+div .space {
+    width: 40px;
+}
+
+.page-header {
+    background-image: url('../images/header.jpg');
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.error-msg {
+    font-size: 12px;
+    font-weight: 300;
+    color: darkred;
+}
+
+.error-msg-hidden {
+    visibility: hidden;
+    font-size: 12px;
+    font-weight: 300;
+    color: darkred;
+}

@@ -6,3 +6,9 @@ venv/
 
 #pycache
 __pycache__/
+
+#node modules
+node_modules/
+
+#webpack output
+dist/
