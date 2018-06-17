@@ -2,10 +2,11 @@ class ThroughputMeasure:
 
     def __init__(self, throughput, transport_layer_protocol, reversed_transmission_direction, test_id = 0, args = {}):
         self.throughput = throughput
-        self.args = args
         self.test_id = test_id
         self.transport_layer_protocol = transport_layer_protocol
         self.reversed_transmission_diretion = reversed_transmission_direction
+        self.args = args
+
 
     def pretty_format(value):
         if value >= 1e9:

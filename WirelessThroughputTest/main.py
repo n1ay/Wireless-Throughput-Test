@@ -3,16 +3,21 @@ import subprocess
 sys.path.append('../Database/')
 from argument import Argument
 from throughput_measure import ThroughputMeasure
-from wireless_throughput_test_repository import WirelessThroughputTestRepository
+from test_instance_repository import TestInstanceRepository
+from tcp_repository import TcpRepository
+from udp_repository import UdpRepository
+from tcp_reverse_repository import TcpReverseRepository
+from udp_reverse_repository import UdpReverseRepository
+from protocol_repository_factory import ProtocolRepositoryFactory
 import copy
 import time
+import argparse
 
 
 # ----------------------config----------------------------------
 command = 'iperf3'
 device_type = '-c'
 reversed_transmission_direction_flag = '-R'
-time_per_test = 1
 time_per_test_flag = '-t'
 ip = None
 
@@ -25,13 +30,22 @@ tcp_args = ['-l', '-w', '-M']
 tcp_args_domains = [(256, 1024*1024), (256, 256*1024), (500, 5000)]
 tcp_args_extra = ['']
 
-delay_between_tests = 0.2
-
 # --------------------------------------------------------------
 
 
-def command_builder(ip, transport_layer_protocol, reversed_transmission_direction):
-    args = []
+def command_builder(parser):
+    input_args = parser.parse_args()
+
+    ip = input_args.ip_address
+    transport_layer_protocol = input_args.protocol
+    time_per_test = input_args.time
+    reversed_transmission_direction = input_args.reversed
+    store_in_db = input_args.store_in_db
+    buffer_length = transport_layer_protocol == 'udp' or input_args.buffer_length
+    window_size = not (transport_layer_protocol == 'udp') and input_args.window_size
+    maximum_segment_size = not (transport_layer_protocol == 'udp') and input_args.maximum_segment_size
+
+    opt_args = []
 
     if reversed_transmission_direction:
         transmission_direction_arg = reversed_transmission_direction_flag
@@ -41,24 +55,33 @@ def command_builder(ip, transport_layer_protocol, reversed_transmission_directio
     command_prefix = [command, device_type, ip, time_per_test_flag, str(time_per_test), transmission_direction_arg]
 
     if transport_layer_protocol == 'udp':
-        args = [Argument(name='buffer_length', flag=udp_args[0], min_val=udp_args_domains[0][0],
+        opt_args = [Argument(name='buffer_length', flag=udp_args[0], min_val=udp_args_domains[0][0],
                          max_val=udp_args_domains[0][1], get_next_value_method='multiply')]
         command_prefix+=udp_args_extra
 
     elif transport_layer_protocol == 'tcp':
-        args = [Argument(name='buffer_length', flag=tcp_args[0], min_val=tcp_args_domains[0][0],
-                     max_val=tcp_args_domains[0][1], get_next_value_method='multiply'),
-            Argument(name='window_size', flag=tcp_args[1], min_val=tcp_args_domains[1][0],
-                     max_val=tcp_args_domains[1][1], get_next_value_method='multiply'),
-            Argument(name='maximum_segment_size', flag=tcp_args[2], min_val=tcp_args_domains[2][0],
-                     max_val=tcp_args_domains[2][1], get_next_value_method='add')]
+        if buffer_length:
+         opt_args.append(Argument(name='buffer_length', flag=tcp_args[0], min_val=tcp_args_domains[0][0],
+                     max_val=tcp_args_domains[0][1], get_next_value_method='multiply'))
+        if window_size:
+            opt_args.append(Argument(name='window_size', flag=tcp_args[1], min_val=tcp_args_domains[1][0],
+                     max_val=tcp_args_domains[1][1], get_next_value_method='multiply'))
+        if maximum_segment_size:
+            opt_args.append(Argument(name='maximum_segment_size', flag=tcp_args[2], min_val=tcp_args_domains[2][0],
+                     max_val=tcp_args_domains[2][1], get_next_value_method='add'))
         command_prefix += tcp_args_extra
 
-    return command_prefix, args
+        if len(opt_args) == 0:
+            print('Impossible to optimize throughput without any parameters.')
+            exit(-1)
+
+    args = (time_per_test, transport_layer_protocol, reversed_transmission_direction, store_in_db)
+
+    return command_prefix, opt_args, args
 
 
-#TODO: refactor usage of DB in function below
-def perform_test(command_prefix, args, transport_layer_protocol, reversed_transmission_direction, store_in_db):
+def perform_test(command_prefix, opt_args, args):
+    (time_per_test, transport_layer_protocol, reversed_transmission_direction, store_in_db) = args
     if reversed_transmission_direction:
         print('Performing {0} throughput test (server -> client transmission)'.format(transport_layer_protocol))
     else:
@@ -66,23 +89,24 @@ def perform_test(command_prefix, args, transport_layer_protocol, reversed_transm
 
     test_id = None
     if store_in_db:
-        repository = WirelessThroughputTestRepository()
-        test_id = repository.add_test()
-        collection = repository.get_collection(transport_layer_protocol, reversed_transmission_direction)
+        test_repository = TestInstanceRepository()
+        test_id = test_repository.add(opt_args, time_per_test)
+        protocol_repository_factory = ProtocolRepositoryFactory()
+        protocol_repository = protocol_repository_factory.get_repository(transport_layer_protocol, reversed_transmission_direction)
 
 
     best_throughput = 0
     best_parameters = None
     while(True):
         actual_command = copy.deepcopy(command_prefix)
-        for i in args:
+        for i in opt_args:
             actual_command.append(i.flag)
             actual_command.append(str(i.value))
 
         throughput = command_executor(actual_command, transport_layer_protocol, reversed_transmission_direction)
         throughput_measure = ThroughputMeasure(throughput, transport_layer_protocol, reversed_transmission_direction, test_id)
 
-        for i in args:
+        for i in opt_args:
             throughput_measure.args[i.name]=i.value
 
         if throughput > best_throughput:
@@ -92,29 +116,30 @@ def perform_test(command_prefix, args, transport_layer_protocol, reversed_transm
         print(throughput_measure)
 
         if store_in_db:
-            repository.add(collection, throughput_measure)
+            protocol_repository.add(throughput_measure)
 
-        has_max_value_list = [argument.has_max_value() for argument in args]
+        has_max_value_list = [argument.has_max_value() for argument in opt_args]
         if all(has_max_value_list):
             break
 
         increased = False
-        if args[0].has_max_value():
-            args[0].reset_value()
+        if opt_args[0].has_max_value():
+            opt_args[0].reset_value()
             increased = True
-            for i in range(1, len(args)):
-                if args[i].has_max_value():
-                    args[i].reset_value()
+            for i in range(1, len(opt_args)):
+                if opt_args[i].has_max_value():
+                    opt_args[i].reset_value()
                 else:
-                    args[i].get_next_value()
+                    opt_args[i].get_next_value()
                     break
 
         if(not(increased)):
-            args[0].get_next_value()
-        time.sleep(delay_between_tests)
+            opt_args[0].get_next_value()
 
     if store_in_db:
-        repository.client.close()
+        test_repository.update(test_id, opt_args, time_per_test, str(best_parameters))
+        test_repository.client.close()
+        protocol_repository.client.close()
     print('Best configuration: {0}'.format(best_parameters))
     return test_id, best_parameters
 
@@ -147,38 +172,28 @@ def command_executor(command, transport_layer_protocol, reversed_transmission_di
     throughput=float(throughput)*metric_prefix
     return throughput
 
-def perform_all_tests(ip, store_in_db):
-    command_prefix, args = command_builder(ip, transport_layer_protocol='udp', reversed_transmission_direction=False)
-    perform_test(command_prefix, args, transport_layer_protocol='udp', reversed_transmission_direction=False,
-                 store_in_db=store_in_db)
-
-    #command_prefix, args = command_builder(ip, transport_layer_protocol='udp', reversed_transmission_direction=True)
-    #perform_test(command_prefix, args, transport_layer_protocol='udp', reversed_transmission_direction=True,
-    #             store_in_db=store_in_db)
-
-    command_prefix, args = command_builder(ip, transport_layer_protocol='tcp', reversed_transmission_direction=False)
-    perform_test(command_prefix, args, transport_layer_protocol='tcp', reversed_transmission_direction=False,
-                 store_in_db=store_in_db)
-
-    command_prefix, args = command_builder(ip, transport_layer_protocol='tcp', reversed_transmission_direction=True)
-    perform_test(command_prefix, args, transport_layer_protocol='tcp', reversed_transmission_direction=True,
-                 store_in_db=store_in_db)
+def build_parser():
+    parser = argparse.ArgumentParser(description='Automated throughput test.')
+    parser.add_argument('-ip', '--ip_address', help='Server\'s ip address', required=True)
+    parser.add_argument('-t', '--time', help='Time in seconds to transmit for (for a single test)', required=True)
+    parser.add_argument('-p', '--protocol', help='Transport layer protocol (tcp/udp). Usage of udp automatically imposes usage of buffer length and forbids usage of any other parameters', required=True)
+    parser.add_argument('-R', '--reversed', action="store_true", help='Reverse transmission direction', default=False,
+                        required=False)
+    parser.add_argument('-l', '--buffer_length', action="store_true", help='Optimize throughput using buffer length.', default=False,
+                        required=False)
+    parser.add_argument('-w', '--window_size', action="store_true", help='Optimize throughput using window size', default=False,
+                        required=False)
+    parser.add_argument('-M', '--maximum_segment_size', action="store_true", help='Optimize throughput using maximum segment size', default=False,
+                        required=False)
+    parser.add_argument('-db', '--store_in_db', action="store_true", help='Store results in database', default=False,
+                        required=False)
+    return parser
 
 def main():
-    if len(sys.argv) < 2:
-        print('Please provide server\'s ip address as an argument')
-        exit(-1)
-    elif(len(sys.argv) > 2):
-        print('Only one argument is needed')
-        exit(-1)
-    ip = sys.argv[1]
+    parser = build_parser()
 
-    transport_layer_protocol = 'udp'
-    reversed_transmission_direction = False
-    #command_prefix, args = command_builder(ip, transport_layer_protocol, reversed_transmission_direction)
-    #perform_test(command_prefix, args, transport_layer_protocol=transport_layer_protocol, reversed_transmission_direction=reversed_transmission_direction, store_in_db=True)
-
-    perform_all_tests(ip, store_in_db=True)
+    command_prefix, opt_args, args = command_builder(parser)
+    perform_test(command_prefix, opt_args, args)
 
 if __name__ == '__main__':
     main()
