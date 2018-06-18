@@ -5,19 +5,25 @@
 .flex-container-row {
     display: flex;
     flex-direction: row;
-    margin: 0 auto;
+    justify-content: center;
     padding: 10px;
+    border-style: solid;
+    border-width: 3px;
+    border-color: aquamarine;
 }
 
 .flex-container-column {
     display: flex;
     flex-direction: column;
-    margin: 0 auto;
+    justify-content: center;
     padding: 10px;
+    border-style: solid;
+    border-width: 3px;
+    border-color: crimson;
 }
 
-.flex-container-row, .flex-container-column > * {
-    flex: auto;
+.flex-container-row > *, .flex-container-column > * {
+    flex: none;
 }
 
 .header-contents h1 {

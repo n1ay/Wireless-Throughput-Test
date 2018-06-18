@@ -1,7 +1,7 @@
 var $ = require('jquery');
 import React, { Component } from 'react'
 import { Button, Panel, ButtonToolbar, MenuItem, DropdownButton } from 'react-bootstrap';
-import BrowseHistoricalTests from "./BrowseHistoricalTests";
+import BrowseHistoricalResults from "./BrowseHistoricalResults";
 import PerformTestMenu from "./PerformTestMenu";
 
 export default class MainMenu extends Component {
@@ -30,31 +30,42 @@ export default class MainMenu extends Component {
 			<div className='flex-container-column'>
     			<h1>{this.state.greeting}</h1>
     			<br/>
-                <div className='flex-container-row'>
-                    <Button bsSize="large" bsStyle="danger" onClick={this.getPythonHello}>Say Hello!</Button>
-                    <br/>
-                </div>
-                <Panel>
-                    <Panel.Heading>
-                        <Panel.Title toggle>Perform Test Menu</Panel.Title>
-                    </Panel.Heading>
-                    <Panel.Collapse>
-                        <Panel.Body>
-                            <PerformTestMenu/>
-                        </Panel.Body>
-                    </Panel.Collapse>
-                </Panel>
-                <Panel>
-                    <Panel.Heading>
-                        <Panel.Title toggle>Browse Historical Results</Panel.Title>
-                    </Panel.Heading>
-                    <Panel.Collapse>
-                        <Panel.Body>
-                            <BrowseHistoricalTests/>
-                        </Panel.Body>
-                    </Panel.Collapse>
-                </Panel>
+                <Button bsSize="large" bsStyle="danger" onClick={this.getPythonHello}>Say Hello!</Button>
+                <br/>
+                {this.renderPerformTestPanel()}
+                {this.renderBrowseHistoricalResultsPanel()}
     		</div>
 		)
 	}
+
+	renderPerformTestPanel() {
+	    return (
+            <Panel>
+                <Panel.Heading>
+                    <Panel.Title toggle>Perform Test</Panel.Title>
+                </Panel.Heading>
+                <Panel.Collapse>
+                    <Panel.Body>
+                        <PerformTestMenu/>
+                    </Panel.Body>
+                </Panel.Collapse>
+            </Panel>
+        );
+    }
+
+    renderBrowseHistoricalResultsPanel() {
+	    return (
+            <Panel>
+                <Panel.Heading>
+                    <Panel.Title toggle>Browse Historical Results</Panel.Title>
+                </Panel.Heading>
+                <Panel.Collapse>
+                    <Panel.Body>
+                        <BrowseHistoricalResults/>
+                    </Panel.Body>
+                </Panel.Collapse>
+            </Panel>
+        );
+    }
+
 }

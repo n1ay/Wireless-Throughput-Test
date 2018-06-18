@@ -1,7 +1,7 @@
 var $ = require('jquery');
 import React, { Component } from 'react'
-import { Button, ButtonToolbar, MenuItem, DropdownButton } from 'react-bootstrap';
-import { FormGroup, Radio, FormControl, HelpBlock, Checkbox } from 'react-bootstrap';
+import { FormGroup, Radio, FormControl, HelpBlock, Checkbox, ControlLabel,
+    Button, Alert, ProgressBar } from 'react-bootstrap';
 
 export default class PerformTestMenu extends Component {
     constructor(props) {
@@ -14,7 +14,9 @@ export default class PerformTestMenu extends Component {
             transmissionDirection: 'c->s',
             useBufferLength: false,
             useWindowSize: false,
-            useMaximumSegmentSize: false
+            useMaximumSegmentSize: false,
+            saveResultsInDb: false,
+            progress: 0,
         };
 
         this.handleIPFormChange = this.handleIPFormChange.bind(this);
@@ -69,70 +71,150 @@ export default class PerformTestMenu extends Component {
             this.setState({transmissionDirection: 'c->s'});
     }
 
+    allParametersAreOk() {
+        return this.getTimePerTestFormValidationState()==='success'
+            && this.getIPFormValidationState()==='success'
+            && (this.state.useBufferLength || this.state.useWindowSize || this.state.useMaximumSegmentSize)
+    }
+
+    updateProgressBar(passedTime, timeToComplete) {
+        setTimeout(()=> {
+            this.setState({
+                progress: this.state.progress+1
+            });
+            if (passedTime <= timeToComplete) {
+                this.updateProgressBar(passedTime+timeToComplete/100, timeToComplete)
+            }
+        },
+            timeToComplete*10
+        )
+    }
+
     render() {
         return (
             <div>
                 <form>
                     <div className='flex-container-row'>
-                        <FormGroup
-                            controlId="formBasicText"
-                            validationState={this.getIPFormValidationState()}
-                        >
-                            <FormControl
-                                type="text"
-                                value={this.state.serverIPAddress}
-                                placeholder="Ip address"
-                                onChange={this.handleIPFormChange}
-                            />
-                            <FormControl.Feedback />
-                            <HelpBlock bsClass={this.getIPFormValidationState()==='error'?'error-msg':'error-msg-hidden'}>Please put valid ip address.</HelpBlock>
-                        </FormGroup>
+                        {this.renderIPForm()}
                         <div className='space'> </div>
-                        <FormGroup
-                            controlId="formBasicText"
-                            validationState={this.getTimePerTestFormValidationState()}
-                        >
-                            <FormControl
-                                type="number"
-                                value={this.state.timePerTest}
-                                placeholder="Time per single test (s)"
-                                onChange={this.handleTimePerTestFormChange}
-                            />
-                            <FormControl.Feedback />
-                            <HelpBlock bsClass={this.getTimePerTestFormValidationState()==='error'?"error-msg":'error-msg-hidden'}>
-                                {this.state.timePerTest < 100 ?'Please put valid number.':'Such long tests are not recommended.'}</HelpBlock>
-                        </FormGroup>
+                        {this.renderTimePerTestForm()}
                     </div>
                     <div className='flex-container-row'>
-                        <FormGroup>
-                            <Radio name="radioProtocolGroup" checked={this.state.protocol==='tcp'} onChange={this.handleProtocolChange}>
-                                TCP
-                            </Radio>{' '}
-                            <Radio name="radioProtocolGroup" checked={this.state.protocol==='udp'} onChange={this.handleProtocolChange}>
-                                UDP
-                            </Radio>{' '}
-                        </FormGroup>
+                        {this.renderRadioProtocol()}
                         <div className='space'> </div>
-                        <FormGroup>
-                            <Radio name="radioTransmissionDirectionGroup" checked={this.state.transmissionDirection==='c->s'} onChange={this.handleTransmissionDirectionChange}>
-                                client -> server
-                            </Radio>{' '}
-                            <Radio name="radioTransmissionDirectionGroup" checked={this.state.transmissionDirection==='s->c'} onChange={this.handleTransmissionDirectionChange}>
-                                server -> client
-                            </Radio>{' '}
-                        </FormGroup>
+                        {this.renderRadioTransmissionDirection()}
                         <div className='space'> </div>
-                        <FormGroup>
-                                <Checkbox onChange={() => this.setState({useBufferLength: !this.state.useBufferLength})} checked={this.state.useBufferLength}>buffer length</Checkbox>
-                                <Checkbox disabled={this.state.protocol==='udp'} onChange={() => this.setState({useWindowSize: !this.state.useWindowSize})} checked={this.state.useWindowSize}>window size</Checkbox>{' '}
-                                <Checkbox disabled={this.state.protocol==='udp'} onChange={() =>this.setState({useMaximumSegmentSize: !this.state.useMaximumSegmentSize})} checked={this.state.useMaximumSegmentSize}>maximum segment size</Checkbox>
-                        </FormGroup>
+                        {this.renderOptimizeParamsCheckbox()}
+                        <div className='space'> </div>
+                        {this.renderSaveInDbCheckbox()}
                     </div>
                     <div className='space'> </div>
-                    <Button disabled={!(this.getTimePerTestFormValidationState()==='success') || !(this.getIPFormValidationState()==='success')} bsStyle='primary' onClick={() => console.log(this.state)}>
-                        Run test!
-                    </Button>
+                    <div className='flex-container-row'>
+                        <Button disabled={!this.allParametersAreOk()} bsStyle='primary' bsSize='large' onClick={() => {console.log(this.state);this.updateProgressBar(0,10)}}>
+                            Run test!
+                        </Button>
+                    </div>
                 </form>
+            </div>
+        );
+    }
+
+    renderIPForm() {
+        return (
+            <div className='flex-container-column'>
+                <ControlLabel>Server's IP address</ControlLabel>
+                <FormGroup
+                    controlId="formBasicText"
+                    validationState={this.getIPFormValidationState()}
+                >
+                    <FormControl
+                        type="text"
+                        value={this.state.serverIPAddress}
+                        placeholder="Ip address"
+                        onChange={this.handleIPFormChange}
+                    />
+                    <FormControl.Feedback />
+                    <HelpBlock bsClass={this.getIPFormValidationState()==='error'?'error-msg':'error-msg-hidden'}>Please put valid ip address.</HelpBlock>
+                </FormGroup>
+            </div>
+        );
+    }
+
+    renderTimePerTestForm() {
+        return (
+            <div className='flex-container-column'>
+                <ControlLabel>Time per single test in seconds</ControlLabel>
+                <FormGroup
+                    controlId="formBasicText"
+                    validationState={this.getTimePerTestFormValidationState()}
+                >
+                    <FormControl
+                        type="number"
+                        value={this.state.timePerTest}
+                        placeholder="Time per test"
+                        onChange={this.handleTimePerTestFormChange}
+                    />
+                    <FormControl.Feedback />
+                    <HelpBlock bsClass={this.getTimePerTestFormValidationState()==='error'?"error-msg":'error-msg-hidden'}>
+                        {this.state.timePerTest < 100 ?'Please put valid number.':'Such long tests are not recommended.'}</HelpBlock>
+                </FormGroup>
+            </div>
+        );
+    }
+
+    renderRadioProtocol() {
+        return(
+            <div className='flex-container-column'>
+                <ControlLabel>Protocol</ControlLabel>
+                <FormGroup>
+                    <Radio name="protocolRadioGroup" checked={this.state.protocol==='tcp'} onChange={this.handleProtocolChange}>
+                        TCP
+                    </Radio>{' '}
+                    <Radio name="protocolRadioGroup" checked={this.state.protocol==='udp'} onChange={this.handleProtocolChange}>
+                        UDP
+                    </Radio>{' '}
+                </FormGroup>
+            </div>
+        );
+    }
+
+    renderRadioTransmissionDirection() {
+        return (
+            <div className='flex-container-column'>
+                <ControlLabel>Transmission direction</ControlLabel>
+                <FormGroup>
+                    <Radio name="transmissionDirectionRadioGroup" checked={this.state.transmissionDirection==='c->s'} onChange={this.handleTransmissionDirectionChange}>
+                        client -> server
+                    </Radio>{' '}
+                    <Radio name="transmissionDirectionRadioGroup" checked={this.state.transmissionDirection==='s->c'} onChange={this.handleTransmissionDirectionChange}>
+                        server -> client
+                    </Radio>{' '}
+                </FormGroup>
+            </div>
+        );
+    }
+
+    renderOptimizeParamsCheckbox(){
+        return(
+            <div className='flex-container-column'>
+                <ControlLabel>Optimization parameters</ControlLabel>
+                <FormGroup>
+                    <Checkbox onChange={() => this.setState({useBufferLength: !this.state.useBufferLength})} checked={this.state.useBufferLength}>buffer length</Checkbox>
+                    <Checkbox disabled={this.state.protocol==='udp'} onChange={() => this.setState({useWindowSize: !this.state.useWindowSize})} checked={this.state.useWindowSize}>window size</Checkbox>{' '}
+                    <Checkbox disabled={this.state.protocol==='udp'} onChange={() =>this.setState({useMaximumSegmentSize: !this.state.useMaximumSegmentSize})} checked={this.state.useMaximumSegmentSize}>maximum segment size</Checkbox>
+                    <Alert bsStyle="warning">For UDP buffer length is only suitable parameter</Alert>
+                </FormGroup>
+            </div>
+        );
+    }
+
+    renderSaveInDbCheckbox(){
+        return(
+            <div className='flex-container-column'>
+                <ControlLabel>Save results in database</ControlLabel>
+                <FormGroup>
+                    <Checkbox onChange={() => this.setState({saveResultsInDb: !this.state.saveResultsInDb})} checked={this.state.saveResultsInDb}>save results</Checkbox>
+                </FormGroup>
             </div>
         );
     }

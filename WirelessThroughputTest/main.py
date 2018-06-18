@@ -90,7 +90,8 @@ def perform_test(command_prefix, opt_args, args):
     test_id = None
     if store_in_db:
         test_repository = TestInstanceRepository()
-        test_id = test_repository.add(opt_args, time_per_test)
+        test_type = test_repository.get_test_type(transport_layer_protocol, reversed_transmission_direction)
+        test_id = test_repository.add(test_type, opt_args, time_per_test)
         protocol_repository_factory = ProtocolRepositoryFactory()
         protocol_repository = protocol_repository_factory.get_repository(transport_layer_protocol, reversed_transmission_direction)
 
@@ -137,7 +138,7 @@ def perform_test(command_prefix, opt_args, args):
             opt_args[0].get_next_value()
 
     if store_in_db:
-        test_repository.update(test_id, opt_args, time_per_test, str(best_parameters))
+        test_repository.update(test_id, test_type, opt_args, time_per_test, str(best_parameters))
         test_repository.client.close()
         protocol_repository.client.close()
     print('Best configuration: {0}'.format(best_parameters))

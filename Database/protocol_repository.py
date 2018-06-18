@@ -33,3 +33,6 @@ class ProtocolRepository:
         item.update(throughput_measure.args)
 
         return self.db[self.collection].update({'_id': id},item).inserted_id
+
+    def get_all_by_test_id(self, id):
+        return self.db[self.collection].find({'test_id': id})
