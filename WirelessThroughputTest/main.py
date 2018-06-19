@@ -1,37 +1,13 @@
 import sys
 import subprocess
+from config import *
 sys.path.append('../Database/')
 from argument import Argument
 from throughput_measure import ThroughputMeasure
 from test_instance_repository import TestInstanceRepository
-from tcp_repository import TcpRepository
-from udp_repository import UdpRepository
-from tcp_reverse_repository import TcpReverseRepository
-from udp_reverse_repository import UdpReverseRepository
 from protocol_repository_factory import ProtocolRepositoryFactory
 import copy
-import time
 import argparse
-
-
-# ----------------------config----------------------------------
-command = 'iperf3'
-device_type = '-c'
-reversed_transmission_direction_flag = '-R'
-time_per_test_flag = '-t'
-ip = None
-
-
-udp_args = ['-l']
-udp_args_domains = [(256, 62*1024)]
-udp_args_extra = ['-u', '-b', '0']
-
-tcp_args = ['-l', '-w', '-M']
-tcp_args_domains = [(256, 1024*1024), (256, 256*1024), (500, 5000)]
-tcp_args_extra = ['']
-
-# --------------------------------------------------------------
-
 
 def command_builder(parser):
     input_args = parser.parse_args()
@@ -81,6 +57,9 @@ def command_builder(parser):
 
 
 def perform_test(command_prefix, opt_args, args):
+
+    results = []
+
     (time_per_test, transport_layer_protocol, reversed_transmission_direction, store_in_db) = args
     if reversed_transmission_direction:
         print('Performing {0} throughput test (server -> client transmission)'.format(transport_layer_protocol))
@@ -115,6 +94,7 @@ def perform_test(command_prefix, opt_args, args):
             best_parameters = copy.deepcopy(throughput_measure)
 
         print(throughput_measure)
+        results.append(throughput_measure.serialize_JSON())
 
         if store_in_db:
             protocol_repository.add(throughput_measure)
@@ -142,7 +122,7 @@ def perform_test(command_prefix, opt_args, args):
         test_repository.client.close()
         protocol_repository.client.close()
     print('Best configuration: {0}'.format(best_parameters))
-    return test_id, best_parameters
+    return test_id, best_parameters.serialize_JSON(), results
 
 def command_executor(command, transport_layer_protocol, reversed_transmission_direction):
     output = subprocess.check_output(command).decode().splitlines()
@@ -190,11 +170,32 @@ def build_parser():
                         required=False)
     return parser
 
+def parse_args(parser):
+    input_args = parser.parse_args()
+
+    ip = input_args.ip_address
+    transport_layer_protocol = input_args.protocol
+    time_per_test = input_args.time
+    reversed_transmission_direction = input_args.reversed
+    store_in_db = input_args.store_in_db
+    buffer_length = transport_layer_protocol == 'udp' or input_args.buffer_length
+    window_size = not (transport_layer_protocol == 'udp') and input_args.window_size
+    maximum_segment_size = not (transport_layer_protocol == 'udp') and input_args.maximum_segment_size
+
+    return (ip, transport_layer_protocol, time_per_test, reversed_transmission_direction, store_in_db,
+            buffer_length, window_size, maximum_segment_size)
+
 def main():
     parser = build_parser()
 
     command_prefix, opt_args, args = command_builder(parser)
-    perform_test(command_prefix, opt_args, args)
+    test_id, best_configuration, results = perform_test(command_prefix, opt_args, args)
+
+    return {
+        'test_id': test_id,
+        'best_configuration': best_configuration,
+        'results': results
+    }
 
 if __name__ == '__main__':
     main()

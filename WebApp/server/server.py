@@ -1,4 +1,8 @@
 from flask import Flask, render_template
+import sys
+sys.path.append('../../WirelessThroughputTest/')
+sys.path.append('../../Database')
+from main import *
 
 import random
 
@@ -16,5 +20,11 @@ def index():
 def hello():
     return get_hello()
 
+@app.route("/run")
+def run_test():
+    parser = build_parser()
+    command_builder(parser)
+    return 'lul'
+
 if __name__ == "__main__":
-	app.run()
+    app.run()

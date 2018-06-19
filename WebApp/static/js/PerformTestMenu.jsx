@@ -72,22 +72,9 @@ export default class PerformTestMenu extends Component {
     }
 
     allParametersAreOk() {
-        return this.getTimePerTestFormValidationState()==='success'
-            && this.getIPFormValidationState()==='success'
+        return this.getTimePerTestFormValidationState() === 'success'
+            && this.getIPFormValidationState() === 'success'
             && (this.state.useBufferLength || this.state.useWindowSize || this.state.useMaximumSegmentSize)
-    }
-
-    updateProgressBar(passedTime, timeToComplete) {
-        setTimeout(()=> {
-            this.setState({
-                progress: this.state.progress+1
-            });
-            if (passedTime <= timeToComplete) {
-                this.updateProgressBar(passedTime+timeToComplete/100, timeToComplete)
-            }
-        },
-            timeToComplete*10
-        )
     }
 
     render() {

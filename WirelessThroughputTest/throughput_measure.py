@@ -26,6 +26,15 @@ class ThroughputMeasure:
             ret += ' (client -> server) transmission'
         return ret
 
+    def serialize_JSON(self):
+        item = {
+            'throughput_value': self.throughput,
+            'test_id': self.test_id
+        }
+        item.update(self.args)
+
+        return item
+
     def __str__(self):
         ret = self.print_type() + ' throughput = ' + ThroughputMeasure.pretty_format(self.throughput) + ', '
         for i in self.args.keys():

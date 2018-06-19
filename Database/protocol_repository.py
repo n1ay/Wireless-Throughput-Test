@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 from bson import ObjectId
+from throughput_measure import ThroughputMeasure
 
 class ProtocolRepository:
     def __init__(self, ip='localhost', port=27017):
@@ -7,13 +8,8 @@ class ProtocolRepository:
         self.db = self.client['wifi-throughput-test']
         self.collection = None
 
-    def add(self, throughput_measure):
-        item = {
-            'throughput_value': throughput_measure.throughput,
-            'test_id': throughput_measure.test_id
-        }
-        item.update(throughput_measure.args)
-
+    def add(self, throughput_measure: ThroughputMeasure):
+        item = throughput_measure.serialize_JSON()
         return self.db[self.collection].insert_one(item).inserted_id
 
     def get_all(self):
@@ -25,13 +21,8 @@ class ProtocolRepository:
     def delete(self, id: ObjectId):
         return self.db[self.collection].remove({'_id': id})
 
-    def update(self, id: ObjectId, throughput_measure):
-        item = {
-            'throughput_value': throughput_measure.throughput,
-            'test_id': throughput_measure.test_id
-        }
-        item.update(throughput_measure.args)
-
+    def update(self, id: ObjectId, throughput_measure: ThroughputMeasure):
+        item = throughput_measure.serialize_JSON()
         return self.db[self.collection].update({'_id': id},item).inserted_id
 
     def get_all_by_test_id(self, id):
