@@ -1,6 +1,7 @@
 import sys
 import subprocess
 from config import *
+from utils import *
 sys.path.append('../Database/')
 from argument import Argument
 from throughput_measure import ThroughputMeasure
@@ -9,19 +10,9 @@ from protocol_repository_factory import ProtocolRepositoryFactory
 import copy
 import argparse
 
-def command_builder(parser):
-    input_args = parser.parse_args()
-
-    ip = input_args.ip_address
-    transport_layer_protocol = input_args.protocol
-    time_per_test = input_args.time
-    reversed_transmission_direction = input_args.reversed
-    store_in_db = input_args.store_in_db
-    buffer_length = transport_layer_protocol == 'udp' or input_args.buffer_length
-    window_size = not (transport_layer_protocol == 'udp') and input_args.window_size
-    maximum_segment_size = not (transport_layer_protocol == 'udp') and input_args.maximum_segment_size
-
-    opt_args = []
+def command_builder(input_args):
+    (ip, transport_layer_protocol, time_per_test, reversed_transmission_direction, store_in_db,
+     buffer_length, window_size, maximum_segment_size) = input_args
 
     if reversed_transmission_direction:
         transmission_direction_arg = reversed_transmission_direction_flag
@@ -36,6 +27,7 @@ def command_builder(parser):
         command_prefix+=udp_args_extra
 
     elif transport_layer_protocol == 'tcp':
+        opt_args = []
         if buffer_length:
          opt_args.append(Argument(name='buffer_length', flag=tcp_args[0], min_val=tcp_args_domains[0][0],
                      max_val=tcp_args_domains[0][1], get_next_value_method='multiply'))
@@ -94,7 +86,7 @@ def perform_test(command_prefix, opt_args, args):
             best_parameters = copy.deepcopy(throughput_measure)
 
         print(throughput_measure)
-        results.append(throughput_measure.serialize_JSON())
+        results.append(throughput_measure.as_dict())
 
         if store_in_db:
             protocol_repository.add(throughput_measure)
@@ -118,11 +110,11 @@ def perform_test(command_prefix, opt_args, args):
             opt_args[0].get_next_value()
 
     if store_in_db:
-        test_repository.update(test_id, test_type, opt_args, time_per_test, str(best_parameters))
+        test_repository.update(test_id, test_type, opt_args, time_per_test, best_parameters.as_dict())
         test_repository.client.close()
         protocol_repository.client.close()
     print('Best configuration: {0}'.format(best_parameters))
-    return test_id, best_parameters.serialize_JSON(), results
+    return test_id, best_parameters.as_dict(), results
 
 def command_executor(command, transport_layer_protocol, reversed_transmission_direction):
     output = subprocess.check_output(command).decode().splitlines()
@@ -142,15 +134,9 @@ def command_executor(command, transport_layer_protocol, reversed_transmission_di
     throughput_position = [i for i in range(len(output_split)) if output_split[i].find('bits/sec') != -1][0] - 1
     throughput = output_split[throughput_position]
 
-    metric_prefix = 1
-    if output_split[throughput_position+1][0] == 'K':
-        metric_prefix = 1000
-    elif output_split[throughput_position+1][0] == 'M':
-        metric_prefix = 1e6
-    elif output_split[throughput_position+1][0] == 'G':
-        metric_prefix = 1e9
+    metric_prefix_value = get_metric_prefix_value(output_split[throughput_position+1])
 
-    throughput=float(throughput)*metric_prefix
+    throughput=float(throughput)*metric_prefix_value
     return throughput
 
 def build_parser():
@@ -185,10 +171,8 @@ def parse_args(parser):
     return (ip, transport_layer_protocol, time_per_test, reversed_transmission_direction, store_in_db,
             buffer_length, window_size, maximum_segment_size)
 
-def main():
-    parser = build_parser()
-
-    command_prefix, opt_args, args = command_builder(parser)
+def run_tests(input_args):
+    command_prefix, opt_args, args = command_builder(input_args)
     test_id, best_configuration, results = perform_test(command_prefix, opt_args, args)
 
     return {
@@ -196,6 +180,11 @@ def main():
         'best_configuration': best_configuration,
         'results': results
     }
+
+def main():
+    parser = build_parser()
+    input_args = parse_args(parser)
+    return run_tests(input_args)
 
 if __name__ == '__main__':
     main()

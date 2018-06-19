@@ -11,7 +11,7 @@ export default class PerformTestMenu extends Component {
             serverIPAddress: '',
             timePerTest: '',
             protocol: 'tcp',
-            transmissionDirection: 'c->s',
+            reversedTransmissionDirection: false,
             useBufferLength: false,
             useWindowSize: false,
             useMaximumSegmentSize: false,
@@ -23,7 +23,25 @@ export default class PerformTestMenu extends Component {
         this.handleTimePerTestFormChange = this.handleTimePerTestFormChange.bind(this);
         this.handleProtocolChange = this.handleProtocolChange.bind(this);
         this.handleTransmissionDirectionChange = this.handleTransmissionDirectionChange.bind(this);
+        this.sendTestRequest = this.sendTestRequest.bind(this);
     }
+
+    sendTestRequest() {
+        const requestData = {
+            'ip_address': this.state.serverIPAddress,
+            'protocol': this.state.protocol,
+            'time': this.state.timePerTest,
+            'reversed': this.state.reversedTransmissionDirection,
+            'store_in_db': this.state.saveResultsInDb,
+            'buffer_length': this.state.useBufferLength,
+            'window_size': this.state.useWindowSize,
+            'maximum_segment_size': this.state.useMaximumSegmentSize
+        };
+        $.post(window.location.href + 'run', requestData, (data) => {
+            console.log(data);
+        })
+    }
+
 
     getIPFormValidationState() {
         if(this.state.serverIPAddress==='')
@@ -64,11 +82,8 @@ export default class PerformTestMenu extends Component {
             this.setState({protocol: 'tcp'});
     }
 
-    handleTransmissionDirectionChange(e) {
-        if(this.state.transmissionDirection === 'c->s')
-            this.setState({transmissionDirection: 's->c'});
-        else if(this.state.transmissionDirection === 's->c')
-            this.setState({transmissionDirection: 'c->s'});
+    handleTransmissionDirectionChange() {
+        this.setState({reversedTransmissionDirection: !this.state.reversedTransmissionDirection})
     }
 
     allParametersAreOk() {
@@ -97,7 +112,7 @@ export default class PerformTestMenu extends Component {
                     </div>
                     <div className='space'> </div>
                     <div className='flex-container-row'>
-                        <Button disabled={!this.allParametersAreOk()} bsStyle='primary' bsSize='large' onClick={() => {console.log(this.state);this.updateProgressBar(0,10)}}>
+                        <Button disabled={!this.allParametersAreOk()} bsStyle='primary' bsSize='large' onClick={this.sendTestRequest}>
                             Run test!
                         </Button>
                     </div>
@@ -170,10 +185,10 @@ export default class PerformTestMenu extends Component {
             <div className='flex-container-column'>
                 <ControlLabel>Transmission direction</ControlLabel>
                 <FormGroup>
-                    <Radio name="transmissionDirectionRadioGroup" checked={this.state.transmissionDirection==='c->s'} onChange={this.handleTransmissionDirectionChange}>
+                    <Radio name="transmissionDirectionRadioGroup" checked={this.state.reversedTransmissionDirection===false} onChange={this.handleTransmissionDirectionChange}>
                         client -> server
                     </Radio>{' '}
-                    <Radio name="transmissionDirectionRadioGroup" checked={this.state.transmissionDirection==='s->c'} onChange={this.handleTransmissionDirectionChange}>
+                    <Radio name="transmissionDirectionRadioGroup" checked={this.state.reversedTransmissionDirection===true} onChange={this.handleTransmissionDirectionChange}>
                         server -> client
                     </Radio>{' '}
                 </FormGroup>

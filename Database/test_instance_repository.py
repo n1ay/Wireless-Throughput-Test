@@ -30,7 +30,7 @@ class TestInstanceRepository:
 
             {
                 'test_type': test_type,
-                'date': datetime.datetime.now(),
+                'date': time.strftime("%Y-%m-%dT%H:%M:%S"),
                 'parameters': [x.name for x in parameters],
                 'time_per_test': time_per_test,
                 'best_config': best_config
@@ -40,7 +40,7 @@ class TestInstanceRepository:
         return self.db[self.collection].update(
             {'_id': id, },{
                 'test_type': test_type,
-                'date': datetime.datetime.now(),
+                'date': time.strftime("%Y-%m-%dT%H:%M:%S"),
                 'parameters': [x.name for x in parameters],
                 'time_per_test': time_per_test,
                 'best_config': best_config

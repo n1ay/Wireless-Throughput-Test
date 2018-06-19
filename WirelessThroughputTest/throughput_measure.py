@@ -1,22 +1,13 @@
+from utils import *
+
 class ThroughputMeasure:
 
-    def __init__(self, throughput, transport_layer_protocol, reversed_transmission_direction, test_id = 0, args = {}):
+    def __init__(self, throughput, transport_layer_protocol, reversed_transmission_direction, test_id):
         self.throughput = throughput
         self.test_id = test_id
         self.transport_layer_protocol = transport_layer_protocol
         self.reversed_transmission_diretion = reversed_transmission_direction
-        self.args = args
-
-
-    def pretty_format(value):
-        if value >= 1e9:
-            return str(value/1e9)+' Gbits/sec'
-        elif value >= 1e6:
-            return str(value / 1e6) + ' Mbits/sec'
-        elif value >= 1e3:
-            return str(value / 1e3) + ' Kbits/sec'
-        else:
-            return str(value) + ' bits/sec'
+        self.args = {}
 
     def print_type(self):
         ret = self.transport_layer_protocol
@@ -26,7 +17,7 @@ class ThroughputMeasure:
             ret += ' (client -> server) transmission'
         return ret
 
-    def serialize_JSON(self):
+    def as_dict(self):
         item = {
             'throughput_value': self.throughput,
             'test_id': self.test_id
@@ -36,7 +27,7 @@ class ThroughputMeasure:
         return item
 
     def __str__(self):
-        ret = self.print_type() + ' throughput = ' + ThroughputMeasure.pretty_format(self.throughput) + ', '
+        ret = self.print_type() + ' throughput = ' + get_value_with_metric_prefix(self.throughput) + 'bits/sec, '
         for i in self.args.keys():
             ret += '{0} = '.format(i) + str(self.args[i]) + ', '
 
