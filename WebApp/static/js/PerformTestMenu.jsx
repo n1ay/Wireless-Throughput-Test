@@ -1,7 +1,12 @@
+import TimePerTestForm from "./TimePerTestForm";
+
 var $ = require('jquery');
 import React, { Component } from 'react'
 import { FormGroup, Radio, FormControl, HelpBlock, Checkbox, ControlLabel,
     Button, Alert, ProgressBar } from 'react-bootstrap';
+
+import IPForm from "./IPForm";
+import ResultsView from "./ResultsView";
 
 export default class PerformTestMenu extends Component {
     constructor(props) {
@@ -16,7 +21,8 @@ export default class PerformTestMenu extends Component {
             useWindowSize: false,
             useMaximumSegmentSize: false,
             saveResultsInDb: false,
-            progress: 0,
+            dataReceived: false,
+            measure: {}
         };
 
         this.handleIPFormChange = this.handleIPFormChange.bind(this);
@@ -38,15 +44,18 @@ export default class PerformTestMenu extends Component {
             'maximum_segment_size': this.state.useMaximumSegmentSize
         };
         $.post(window.location.href + 'run', requestData, (data) => {
-            console.log(data);
+            this.setState({measure: data});
+            console.log(this.state.measure);
+            this.setState({dataReceived: true});
         })
     }
 
 
     getIPFormValidationState() {
+        const IPRegexp = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
         if(this.state.serverIPAddress==='')
             return null;
-        else if(/^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(this.state.serverIPAddress)) {
+        else if(IPRegexp.test(this.state.serverIPAddress)) {
             return 'success';
         }
         else return 'error';
@@ -92,14 +101,40 @@ export default class PerformTestMenu extends Component {
             && (this.state.useBufferLength || this.state.useWindowSize || this.state.useMaximumSegmentSize)
     }
 
+    showIPFormErrorMsg() {
+        return this.getIPFormValidationState()==='error'?'error-msg':'error-msg-hidden'
+    }
+
+    showTimePerTestErrorMsg() {
+        return this.getTimePerTestFormValidationState()==='error'?"error-msg":'error-msg-hidden'
+    }
+
+    getOptimizationParameters() {
+        return {
+            buffer_length: this.state.useBufferLength,
+            window_size: this.state.useWindowSize,
+            maximum_segment_size: this.state.useMaximumSegmentSize
+        }
+    }
+
     render() {
         return (
             <div>
                 <form>
                     <div className='flex-container-row'>
-                        {this.renderIPForm()}
+                        <IPForm
+                            getValidationState={this.getIPFormValidationState()}
+                            handleChange={this.handleIPFormChange}
+                            value={this.state.serverIPAddress}
+                            showErrMsg={this.showIPFormErrorMsg()}
+                        />
                         <div className='space'> </div>
-                        {this.renderTimePerTestForm()}
+                        <TimePerTestForm
+                            getValidationState={this.getTimePerTestFormValidationState()}
+                            handleChange={this.handleTimePerTestFormChange}
+                            value={this.state.timePerTest}
+                            showErrMsg={this.showTimePerTestErrorMsg()}
+                        />
                     </div>
                     <div className='flex-container-row'>
                         {this.renderRadioProtocol()}
@@ -117,49 +152,7 @@ export default class PerformTestMenu extends Component {
                         </Button>
                     </div>
                 </form>
-            </div>
-        );
-    }
-
-    renderIPForm() {
-        return (
-            <div className='flex-container-column'>
-                <ControlLabel>Server's IP address</ControlLabel>
-                <FormGroup
-                    controlId="formBasicText"
-                    validationState={this.getIPFormValidationState()}
-                >
-                    <FormControl
-                        type="text"
-                        value={this.state.serverIPAddress}
-                        placeholder="Ip address"
-                        onChange={this.handleIPFormChange}
-                    />
-                    <FormControl.Feedback />
-                    <HelpBlock bsClass={this.getIPFormValidationState()==='error'?'error-msg':'error-msg-hidden'}>Please put valid ip address.</HelpBlock>
-                </FormGroup>
-            </div>
-        );
-    }
-
-    renderTimePerTestForm() {
-        return (
-            <div className='flex-container-column'>
-                <ControlLabel>Time per single test in seconds</ControlLabel>
-                <FormGroup
-                    controlId="formBasicText"
-                    validationState={this.getTimePerTestFormValidationState()}
-                >
-                    <FormControl
-                        type="number"
-                        value={this.state.timePerTest}
-                        placeholder="Time per test"
-                        onChange={this.handleTimePerTestFormChange}
-                    />
-                    <FormControl.Feedback />
-                    <HelpBlock bsClass={this.getTimePerTestFormValidationState()==='error'?"error-msg":'error-msg-hidden'}>
-                        {this.state.timePerTest < 100 ?'Please put valid number.':'Such long tests are not recommended.'}</HelpBlock>
-                </FormGroup>
+                {this.state.dataReceived && <ResultsView data={this.state.measure} params={this.getOptimizationParameters()}/>}
             </div>
         );
     }
@@ -204,7 +197,7 @@ export default class PerformTestMenu extends Component {
                     <Checkbox onChange={() => this.setState({useBufferLength: !this.state.useBufferLength})} checked={this.state.useBufferLength}>buffer length</Checkbox>
                     <Checkbox disabled={this.state.protocol==='udp'} onChange={() => this.setState({useWindowSize: !this.state.useWindowSize})} checked={this.state.useWindowSize}>window size</Checkbox>{' '}
                     <Checkbox disabled={this.state.protocol==='udp'} onChange={() =>this.setState({useMaximumSegmentSize: !this.state.useMaximumSegmentSize})} checked={this.state.useMaximumSegmentSize}>maximum segment size</Checkbox>
-                    <Alert bsStyle="warning">For UDP buffer length is only suitable parameter</Alert>
+                    <Alert bsStyle="warning">For UDP, buffer length is only suitable parameter</Alert>
                 </FormGroup>
             </div>
         );

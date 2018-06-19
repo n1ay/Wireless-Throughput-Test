@@ -12,7 +12,6 @@ export default class MainMenu extends Component {
 	render () {
 		return (
 			<div className='flex-container-column'>
-                <br/>
                 {this.renderPerformTestPanel()}
                 {this.renderBrowseHistoricalResultsPanel()}
     		</div>
