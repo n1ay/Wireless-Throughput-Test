@@ -13,7 +13,7 @@ class ProtocolRepository:
         return self.db[self.collection].insert_one(item).inserted_id
 
     def get_all(self):
-        return self.db[self.collection].find({})
+        return list(self.db[self.collection].find({}))
 
     def get(self, id: ObjectId):
         return self.db[self.collection].find_one({'_id': id})
@@ -26,4 +26,4 @@ class ProtocolRepository:
         return self.db[self.collection].update({'_id': id},item).inserted_id
 
     def get_all_by_test_id(self, id):
-        return self.db[self.collection].find({'test_id': id})
+        return list(self.db[self.collection].find({'test_id': id}))

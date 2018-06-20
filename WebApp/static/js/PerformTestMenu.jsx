@@ -24,7 +24,7 @@ export default class PerformTestMenu extends Component {
             saveResultsInDb: false,
             dataReceived: false,
             optimizationParameters: {},
-            measure: {}
+            measureData: {}
         };
 
         this.handleIPFormChange = this.handleIPFormChange.bind(this);
@@ -51,9 +51,9 @@ export default class PerformTestMenu extends Component {
             maximum_segment_size: this.state.useMaximumSegmentSize
         };
         $.post(window.location.href + 'run', requestData, (data) => {
-            this.setState({measure: data});
+            this.setState({measureData: data});
             this.setState({optimizationParameters: optimizationParameters});
-            console.log(this.state.measure);
+            console.log(this.state.measureData);
             this.setState({dataReceived: true});
         })
     }
@@ -148,12 +148,12 @@ export default class PerformTestMenu extends Component {
                     </div>
                     <div className='space'> </div>
                     <div className='flex-container-row'>
-                        <Button disabled={!this.allParametersAreOk()} bsStyle='primary' bsSize='large' onClick={this.sendTestRequest}>
+                        <Button disabled={!this.allParametersAreOk()} bsStyle='success' bsSize='large' onClick={this.sendTestRequest}>
                             Run test!
                         </Button>
                     </div>
                 </form>
-                {this.state.dataReceived && <ResultsView data={this.state.measure} params={this.state.optimizationParameters}/>}
+                {this.state.dataReceived && <ResultsView data={this.state.measureData} params={this.state.optimizationParameters}/>}
             </div>
         );
     }

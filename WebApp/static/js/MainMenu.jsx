@@ -1,7 +1,7 @@
 var $ = require('jquery');
 import React, { Component } from 'react'
 import { Button, Panel, ButtonToolbar, MenuItem, DropdownButton } from 'react-bootstrap';
-import BrowseHistoricalResults from "./BrowseHistoricalResults";
+import BrowseHistoricalResultsMenu from "./BrowseHistoricalResultsMenu";
 import PerformTestMenu from "./PerformTestMenu";
 
 export default class MainMenu extends Component {
@@ -41,7 +41,7 @@ export default class MainMenu extends Component {
                 </Panel.Heading>
                 <Panel.Collapse>
                     <Panel.Body>
-                        <BrowseHistoricalResults/>
+                        <BrowseHistoricalResultsMenu/>
                     </Panel.Body>
                 </Panel.Collapse>
             </Panel>

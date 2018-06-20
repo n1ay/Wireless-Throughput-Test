@@ -9,7 +9,7 @@ class TestInstanceRepository:
     UDP = 'udp (client -> server)'
     UDP_R = 'udp (server -> client)'
     TCP = 'tcp (client -> server)'
-    TCP_R = 'udp (server -> client)'
+    TCP_R = 'tcp (server -> client)'
 
     def __init__(self, ip='localhost', port=27017):
         self.client = MongoClient(ip, port)
@@ -17,7 +17,7 @@ class TestInstanceRepository:
         self.collection = 'tests'
 
     def get_all(self):
-        return self.db[self.collection].find({})
+        return list(self.db[self.collection].find({}))
 
     def get(self, id: ObjectId):
         return self.db[self.collection].find_one({'_id': id})
@@ -31,7 +31,7 @@ class TestInstanceRepository:
             {
                 '_id': id,
                 'test_type': test_type,
-                'date': time.strftime("%Y-%m-%dT%H:%M:%S"),
+                'date': time.strftime("%Y-%m-%d, %H:%M:%S"),
                 'parameters': [x.name for x in parameters],
                 'time_per_test': time_per_test,
                 'best_config': best_config
@@ -41,7 +41,7 @@ class TestInstanceRepository:
         return self.db[self.collection].update(
             {'_id': id, },{
                 'test_type': test_type,
-                'date': time.strftime("%Y-%m-%dT%H:%M:%S"),
+                'date': time.strftime("%Y-%m-%d, %H:%M:%S"),
                 'parameters': [x.name for x in parameters],
                 'time_per_test': time_per_test,
                 'best_config': best_config

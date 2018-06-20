@@ -19,14 +19,20 @@ def get_hello():
 def index():
     return render_template("index.html")
 
-@app.route("/hello")
-def hello():
-    return get_hello()
+@app.route("/tests/get", methods=["GET"])
+def get_all_tests():
+    test_repository = TestInstanceRepository();
+    data = json.dumps(test_repository.get_all(), cls=MongoDBEncoder)
+    return app.response_class(
+            response = data,
+            status = 200,
+            mimetype = 'application/json',
+        )
 
 @app.route("/run", methods=["POST"])
 def run_test():
     input_args = get_test_params(request)
-    data = json.dumps(run_tests(input_args), cls=MongoDBEncoder, sort_keys=True, indent=4)
+    data = json.dumps(run_tests(input_args), cls=MongoDBEncoder)
     return app.response_class(
         response = data,
         status = 200,
