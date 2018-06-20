@@ -1,6 +1,8 @@
 import React, {Component} from "react";
 import BootstrapTable from 'react-bootstrap-table-next';
 import Utils from "./Utils";
+import LineChart from "./LineChart";
+import paginationFactory from 'react-bootstrap-table2-paginator';
 export default class ResultsView extends Component {
     constructor(props) {
         super(props);
@@ -17,7 +19,7 @@ export default class ResultsView extends Component {
             dataField: '_id',
             text: 'ID'
         },{
-            dataField: 'throughput_value',
+            dataField: 'throughput',
             text: 'Throughput'
         }];
 
@@ -47,7 +49,12 @@ export default class ResultsView extends Component {
             return style;
         };
         return (
-            <BootstrapTable striped keyField='_id' data={ results } columns={ columns } rowStyle={ rowStyle } />
+            <div>
+                <BootstrapTable striped keyField='_id' data={ results } columns={ columns } rowStyle={ rowStyle } pagination={ paginationFactory() } />
+                <div className='space'> </div>
+                <LineChart />
+            </div>
+
         );
     }
 

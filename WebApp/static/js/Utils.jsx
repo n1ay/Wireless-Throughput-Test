@@ -3,7 +3,7 @@ export default class Utils {
     static prettyFormat(object) {
 
         const propertiesToFormatList = [
-            'throughput_value',
+            'throughput',
             'buffer_length',
             'window_size'
         ];

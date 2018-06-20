@@ -12,3 +12,6 @@ node_modules/
 
 #webpack output
 dist/
+
+#development stage run
+run-dev.sh

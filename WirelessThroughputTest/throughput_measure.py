@@ -8,13 +8,13 @@ class ThroughputMeasure:
         self.throughput = throughput
         self.test_id = test_id
         self.transport_layer_protocol = transport_layer_protocol
-        self.reversed_transmission_diretion = reversed_transmission_direction
+        self.reversed_transmission_direction = reversed_transmission_direction
         self.args = {}
         self.id = ObjectId()
 
     def print_type(self):
         ret = self.transport_layer_protocol
-        if self.reversed_transmission_diretion:
+        if self.reversed_transmission_direction:
             ret += ' (server -> client) transmission'
         else:
             ret += ' (client -> server) transmission'
@@ -23,7 +23,7 @@ class ThroughputMeasure:
     def as_dict(self):
         item = {
             '_id': self.id,
-            'throughput_value': self.throughput,
+            'throughput': self.throughput,
             'test_id': self.test_id
         }
         item.update(self.args)

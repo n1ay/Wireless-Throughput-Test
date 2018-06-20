@@ -7,6 +7,7 @@ import { FormGroup, Radio, FormControl, HelpBlock, Checkbox, ControlLabel,
 
 import IPForm from "./IPForm";
 import ResultsView from "./ResultsView";
+import LineChart from "./LineChart";
 
 export default class PerformTestMenu extends Component {
     constructor(props) {
@@ -119,6 +120,7 @@ export default class PerformTestMenu extends Component {
     render() {
         return (
             <div>
+                <LineChart />
                 <form>
                     <div className='flex-container-row'>
                         <IPForm
@@ -179,10 +181,10 @@ export default class PerformTestMenu extends Component {
                 <FormGroup>
                     <Radio name="transmissionDirectionRadioGroup" checked={this.state.reversedTransmissionDirection===false} onChange={this.handleTransmissionDirectionChange}>
                         client -> server
-                    </Radio>{' '}
+                    </Radio>
                     <Radio name="transmissionDirectionRadioGroup" checked={this.state.reversedTransmissionDirection===true} onChange={this.handleTransmissionDirectionChange}>
                         server -> client
-                    </Radio>{' '}
+                    </Radio>
                 </FormGroup>
             </div>
         );

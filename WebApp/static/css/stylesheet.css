@@ -2,7 +2,15 @@
     font-size: 12px;
 }
 
-.flex-container-row {
+.projection-label, .projection-alert {
+    width: 35em;
+}
+
+.chart-slider, .projection-value {
+    width: 27em;
+}
+
+div .flex-container-row {
     display: flex;
     flex-direction: row;
     justify-content: center;
@@ -12,28 +20,30 @@
     border-color: aquamarine;
 }
 
-.flex-container-column {
+div .flex-container-column {
     display: flex;
     flex-direction: column;
-    justify-content: center;
     padding: 10px;
     border-style: solid;
     border-width: 3px;
     border-color: crimson;
 }
 
-.flex-container-row > *, .flex-container-column > * {
-    flex: none;
+div .space {
+    width: 40px;
+    border-style: solid;
+    border-width: 3px;
+    border-color: green;
+}
+
+.flex-container-column > *, .flex-container-row > * {
+    flex: fit-content;
 }
 
 .header-contents h1 {
     font-size: 60px;
     font-weight: 300;
     text-align: center;
-}
-
-div .space {
-    width: 40px;
 }
 
 .error-msg {
@@ -47,8 +57,4 @@ div .space {
     font-size: 12px;
     font-weight: 300;
     color: darkred;
-}
-
-.panel-title {
-    font-size: 30px;
 }
