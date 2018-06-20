@@ -25,10 +25,11 @@ class TestInstanceRepository:
     def delete(self, id: ObjectId):
         return self.db[self.collection].remove({'_id': id})
 
-    def add(self, test_type, parameters, time_per_test, best_config=None):
+    def add(self, id, test_type, parameters, time_per_test, best_config=None):
         return self.db[self.collection].insert_one(
 
             {
+                '_id': id,
                 'test_type': test_type,
                 'date': time.strftime("%Y-%m-%dT%H:%M:%S"),
                 'parameters': [x.name for x in parameters],

@@ -1,5 +1,7 @@
 import sys
 import subprocess
+import bson
+from bson import ObjectId
 from config import *
 from utils import *
 sys.path.append('../Database/')
@@ -58,11 +60,11 @@ def perform_test(command_prefix, opt_args, args):
     else:
         print('Performing {0} throughput test (client -> server transmission)'.format(transport_layer_protocol))
 
-    test_id = None
+    test_id = ObjectId()
     if store_in_db:
         test_repository = TestInstanceRepository()
         test_type = test_repository.get_test_type(transport_layer_protocol, reversed_transmission_direction)
-        test_id = test_repository.add(test_type, opt_args, time_per_test)
+        test_repository.add(test_id, test_type, opt_args, time_per_test)
         protocol_repository_factory = ProtocolRepositoryFactory()
         protocol_repository = protocol_repository_factory.get_repository(transport_layer_protocol, reversed_transmission_direction)
 

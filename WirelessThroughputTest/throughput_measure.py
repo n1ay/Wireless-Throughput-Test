@@ -1,4 +1,6 @@
 from utils import *
+import bson
+from bson import ObjectId
 
 class ThroughputMeasure:
 
@@ -8,6 +10,7 @@ class ThroughputMeasure:
         self.transport_layer_protocol = transport_layer_protocol
         self.reversed_transmission_diretion = reversed_transmission_direction
         self.args = {}
+        self.id = ObjectId()
 
     def print_type(self):
         ret = self.transport_layer_protocol
@@ -19,6 +22,7 @@ class ThroughputMeasure:
 
     def as_dict(self):
         item = {
+            '_id': self.id,
             'throughput_value': self.throughput,
             'test_id': self.test_id
         }

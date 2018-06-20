@@ -8,7 +8,7 @@ time_per_test_flag = '-t'
 
 
 udp_args = ['-l']
-udp_args_domains = [(256, 62*1024)]
+udp_args_domains = [(256, 256)] #62*1024)]
 udp_args_extra = ['-u', '-b', '0']
 
 tcp_args = ['-l', '-w', '-M']

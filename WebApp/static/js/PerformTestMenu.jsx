@@ -22,6 +22,7 @@ export default class PerformTestMenu extends Component {
             useMaximumSegmentSize: false,
             saveResultsInDb: false,
             dataReceived: false,
+            optimizationParameters: {},
             measure: {}
         };
 
@@ -43,8 +44,14 @@ export default class PerformTestMenu extends Component {
             'window_size': this.state.useWindowSize,
             'maximum_segment_size': this.state.useMaximumSegmentSize
         };
+         const optimizationParameters = {
+            buffer_length: this.state.useBufferLength,
+            window_size: this.state.useWindowSize,
+            maximum_segment_size: this.state.useMaximumSegmentSize
+        };
         $.post(window.location.href + 'run', requestData, (data) => {
             this.setState({measure: data});
+            this.setState({optimizationParameters: optimizationParameters});
             console.log(this.state.measure);
             this.setState({dataReceived: true});
         })
@@ -109,14 +116,6 @@ export default class PerformTestMenu extends Component {
         return this.getTimePerTestFormValidationState()==='error'?"error-msg":'error-msg-hidden'
     }
 
-    getOptimizationParameters() {
-        return {
-            buffer_length: this.state.useBufferLength,
-            window_size: this.state.useWindowSize,
-            maximum_segment_size: this.state.useMaximumSegmentSize
-        }
-    }
-
     render() {
         return (
             <div>
@@ -152,7 +151,7 @@ export default class PerformTestMenu extends Component {
                         </Button>
                     </div>
                 </form>
-                {this.state.dataReceived && <ResultsView data={this.state.measure} params={this.getOptimizationParameters()}/>}
+                {this.state.dataReceived && <ResultsView data={this.state.measure} params={this.state.optimizationParameters}/>}
             </div>
         );
     }
