@@ -3,6 +3,7 @@ import BootstrapTable from 'react-bootstrap-table-next';
 import Utils from "./Utils";
 import LineChart from "./LineChart";
 import paginationFactory from 'react-bootstrap-table2-paginator';
+import { Alert } from 'react-bootstrap';
 export default class ResultsView extends Component {
     constructor(props) {
         super(props);
@@ -36,9 +37,9 @@ export default class ResultsView extends Component {
     render() {
         const columns = this.getTableColumns(this.props.params);
         const dataReceived = this.props.data;
-        const best_result = dataReceived['best_configuration'];
-        const test_id = dataReceived['test_id'];
-        const results = dataReceived['results'].map(Utils.prettyFormat);
+        const best_result = dataReceived.test_instance.best_configuration;
+        const test_instance = dataReceived.test_instance;
+        const results = dataReceived.results.map(Utils.prettyFormat);
         const rowStyle = (row) => {
             const style = {};
             if(row._id === best_result._id) {
@@ -59,9 +60,15 @@ export default class ResultsView extends Component {
 
         return (
             <div>
-                <BootstrapTable striped keyField='_id' data={ results } columns={ columns } rowStyle={ rowStyle } pagination={ paginationFactory(paginationOptions) } />
-                <div className='space'> </div>
-                <LineChart />
+                <Alert bsStyle="success" className='hint-alert'>Green row indicates the best configuration</Alert>
+                <BootstrapTable 
+                    striped
+                    keyField='_id'
+                    data={ results }
+                    columns={ columns }
+                    rowStyle={ rowStyle }
+                    pagination={ paginationFactory(paginationOptions) }
+                />
             </div>
 
         );

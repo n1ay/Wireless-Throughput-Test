@@ -9,6 +9,7 @@ from argument import Argument
 from throughput_measure import ThroughputMeasure
 from test_instance_repository import TestInstanceRepository
 from protocol_repository_factory import ProtocolRepositoryFactory
+from test_instance import TestInstance
 import copy
 import argparse
 
@@ -55,16 +56,12 @@ def perform_test(command_prefix, opt_args, args):
     results = []
 
     (time_per_test, transport_layer_protocol, reversed_transmission_direction, store_in_db) = args
-    if reversed_transmission_direction:
-        print('Performing {0} throughput test (server -> client transmission)'.format(transport_layer_protocol))
-    else:
-        print('Performing {0} throughput test (client -> server transmission)'.format(transport_layer_protocol))
+
+    print('Performing {0} throughput test'.format(get_test_type(transport_layer_protocol, reversed_transmission_direction)))
 
     test_id = ObjectId()
+    test_type = get_test_type(transport_layer_protocol, reversed_transmission_direction)
     if store_in_db:
-        test_repository = TestInstanceRepository()
-        test_type = test_repository.get_test_type(transport_layer_protocol, reversed_transmission_direction)
-        test_repository.add(test_id, test_type, opt_args, time_per_test)
         protocol_repository_factory = ProtocolRepositoryFactory()
         protocol_repository = protocol_repository_factory.get_repository(transport_layer_protocol, reversed_transmission_direction)
 
@@ -111,12 +108,15 @@ def perform_test(command_prefix, opt_args, args):
         if(not(increased)):
             opt_args[0].get_next_value()
 
+
+    test_instance = TestInstance(test_id, test_type, opt_args, time_per_test, best_configuration)
     if store_in_db:
-        test_repository.update(test_id, test_type, opt_args, time_per_test, best_configuration.as_dict())
+        test_repository = TestInstanceRepository()
+        test_repository.add(test_instance)
         test_repository.client.close()
         protocol_repository.client.close()
     print('Best configuration: {0}'.format(best_configuration))
-    return test_id, best_configuration.as_dict(), results
+    return test_instance, results
 
 def command_executor(command, transport_layer_protocol, reversed_transmission_direction):
     output = subprocess.check_output(command).decode().splitlines()
@@ -175,11 +175,10 @@ def parse_args(parser):
 
 def run_tests(input_args):
     command_prefix, opt_args, args = command_builder(input_args)
-    test_id, best_configuration, results = perform_test(command_prefix, opt_args, args)
+    test_instance, results = perform_test(command_prefix, opt_args, args)
 
     return {
-        'test_id': test_id,
-        'best_configuration': best_configuration,
+        'test_instance': test_instance.as_dict(),
         'results': results
     }
 

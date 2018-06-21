@@ -6,11 +6,6 @@ import time
 
 class TestInstanceRepository:
 
-    UDP = 'udp (client -> server)'
-    UDP_R = 'udp (server -> client)'
-    TCP = 'tcp (client -> server)'
-    TCP_R = 'tcp (server -> client)'
-
     def __init__(self, ip='localhost', port=27017):
         self.client = MongoClient(ip, port)
         self.db = self.client['wifi-throughput-test']
@@ -25,40 +20,16 @@ class TestInstanceRepository:
     def delete(self, id: ObjectId):
         return self.db[self.collection].remove({'_id': id})
 
-    def add(self, id, test_type, parameters, time_per_test, best_configuration=None):
-        return self.db[self.collection].insert_one(
+    def add(self, test_instance):
+        item = test_instance.as_dict()
+        return self.db[self.collection].insert_one(item).inserted_id
 
-            {
-                '_id': id,
-                'test_type': test_type,
-                'date': time.strftime("%Y-%m-%d, %H:%M:%S"),
-                'parameters': [x.name for x in parameters],
-                'time_per_test': time_per_test,
-                'best_configuration': best_configuration
-            }).inserted_id
-
-    def update(self, id, test_type, parameters=None, time_per_test=None, best_configuration=None):
+    def update(self, id, test_instance):
         return self.db[self.collection].update(
             {'_id': id, },{
-                'test_type': test_type,
-                'date': time.strftime("%Y-%m-%d, %H:%M:%S"),
-                'parameters': [x.name for x in parameters],
-                'time_per_test': time_per_test,
-                'best_configuration': best_configuration
+                'test_type': test_instance.test_type,
+                'date': test_instance.date,
+                'parameters': test_instance.parameters,
+                'time_per_test': test_instance.time_per_test,
+                'best_configuration': test_instance.best_configuration
             })
-
-    def get_test_type(self, transport_layer_protocol, reversed_transmission_direction):
-        repository_type = None
-        if transport_layer_protocol == 'udp':
-            if reversed_transmission_direction:
-                repository_type = TestInstanceRepository.UDP_R
-            else:
-                repository_type = TestInstanceRepository.UDP
-        elif transport_layer_protocol == 'tcp':
-            if reversed_transmission_direction:
-                repository_type = TestInstanceRepository.TCP_R
-            else:
-                repository_type = TestInstanceRepository.TCP
-
-        return repository_type
-
