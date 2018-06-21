@@ -25,7 +25,7 @@ class TestInstanceRepository:
     def delete(self, id: ObjectId):
         return self.db[self.collection].remove({'_id': id})
 
-    def add(self, id, test_type, parameters, time_per_test, best_config=None):
+    def add(self, id, test_type, parameters, time_per_test, best_configuration=None):
         return self.db[self.collection].insert_one(
 
             {
@@ -34,17 +34,17 @@ class TestInstanceRepository:
                 'date': time.strftime("%Y-%m-%d, %H:%M:%S"),
                 'parameters': [x.name for x in parameters],
                 'time_per_test': time_per_test,
-                'best_config': best_config
+                'best_configuration': best_configuration
             }).inserted_id
 
-    def update(self, id, test_type, parameters=None, time_per_test=None, best_config=None):
+    def update(self, id, test_type, parameters=None, time_per_test=None, best_configuration=None):
         return self.db[self.collection].update(
             {'_id': id, },{
                 'test_type': test_type,
                 'date': time.strftime("%Y-%m-%d, %H:%M:%S"),
                 'parameters': [x.name for x in parameters],
                 'time_per_test': time_per_test,
-                'best_config': best_config
+                'best_configuration': best_configuration
             })
 
     def get_test_type(self, transport_layer_protocol, reversed_transmission_direction):

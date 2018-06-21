@@ -51,6 +51,7 @@
     "chart.js": "^2.7.2",
     "rc-slider": "^8.6.1",
     "react-bootstrap-table-next": "^0.1.13",
+    "react-bootstrap-table2-overlay": "^0.1.2",
     "react-bootstrap-table2-paginator": "^0.1.4",
     "react-bootstrap-validation": "^0.1.11",
     "react-chartjs-2": "^2.7.2"

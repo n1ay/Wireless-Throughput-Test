@@ -33,7 +33,6 @@ export default class ResultsView extends Component {
         return columns;
     }
 
-
     render() {
         const columns = this.getTableColumns(this.props.params);
         const dataReceived = this.props.data;
@@ -48,9 +47,19 @@ export default class ResultsView extends Component {
             }
             return style;
         };
+
+        const paginationOptions = {
+            sizePerPageList: [{
+                text: '25', value: 25
+            }, {
+                text: '50', value: 50
+            }],
+            hidePageListOnlyOnePage: false
+        };
+
         return (
             <div>
-                <BootstrapTable striped keyField='_id' data={ results } columns={ columns } rowStyle={ rowStyle } pagination={ paginationFactory() } />
+                <BootstrapTable striped keyField='_id' data={ results } columns={ columns } rowStyle={ rowStyle } pagination={ paginationFactory(paginationOptions) } />
                 <div className='space'> </div>
                 <LineChart />
             </div>

@@ -2,25 +2,11 @@ import React, { Component } from 'react';
 import BootstrapTable from 'react-bootstrap-table-next';
 import Utils from "./Utils";
 import paginationFactory from 'react-bootstrap-table2-paginator';
+import overlayFactory from 'react-bootstrap-table2-overlay';
 
 export default class HistoryBrowser extends Component {
-    constructor(props) {
-        super(props);
-        this.handleOnSelect = this.handleOnSelect.bind(this);
-        this.sendDataRequest = this.sendDataRequest.bind(this);
-    }
-
-    handleOnSelect(row, isSelect) {
-        
-    }
-
-    //TODO: add endpoint here
-    sendDataRequest(id, test_type) {
-        $.get(window.location.href + test_type+'/'+id, (data) => {
-            this.setState({testsHistoryData: data});
-            console.log(this.state.testsHistoryData);
-            this.setState({dataReceived: true});
-        })
+    constructor(props, context) {
+        super(props, context);
     }
 
     render() {
@@ -40,14 +26,15 @@ export default class HistoryBrowser extends Component {
             dataField: 'time_per_test',
             text: 'Time per test (s)'
         },{
-            dataField: 'best_config',
+            dataField: 'best_configuration',
             text: 'Best result'
         }];
 
         const dataReceived = this.props.data;
         const results = dataReceived.map((x) => {
             const test_instance = Object.assign({}, x);
-            test_instance.best_config = Utils.prettyFormat(test_instance.best_config).throughput;
+            test_instance.best_configuration = Utils.prettyFormat(test_instance.best_configuration).throughput;
+            test_instance.parameters = test_instance.parameters.map(x => Utils.formatParameters(x)).reduce((x,y) => x+', '+y);
             return test_instance;
         });
 
@@ -55,11 +42,26 @@ export default class HistoryBrowser extends Component {
             mode: 'checkbox',
             clickToSelect: true,
             hideSelectColumn: true,
-            onSelect: this.handleOnSelect,
+            onSelect: this.props.handleOnSelectRow,
+        };
+
+        const paginationOptions = {
+            sizePerPageList: [{
+                text: '25', value: 25
+            }, {
+                text: '50', value: 50
+            }],
+            hidePageListOnlyOnePage: false
         };
 
         return (
-                <BootstrapTable striped hover keyField='_id' data={ results } columns={ columns } selectRow={ selectRow } rowStyle={ rowStyle } pagination={ paginationFactory() } />
+                <BootstrapTable striped hover keyField='_id' data={ results }
+                                columns={ columns }
+                                loading={ this.props.loading }
+                                selectRow={ selectRow }
+                                pagination={ paginationFactory(paginationOptions) }
+                                overlay={ overlayFactory({ spinner: true, background: 'rgba(192,192,192,0.3)' }) }
+                />
         );
     }
 }

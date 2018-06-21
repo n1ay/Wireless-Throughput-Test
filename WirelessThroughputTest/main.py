@@ -70,7 +70,7 @@ def perform_test(command_prefix, opt_args, args):
 
 
     best_throughput = 0
-    best_parameters = None
+    best_configuration = None
     while(True):
         actual_command = copy.deepcopy(command_prefix)
         for i in opt_args:
@@ -85,7 +85,7 @@ def perform_test(command_prefix, opt_args, args):
 
         if throughput > best_throughput:
             best_throughput = throughput
-            best_parameters = copy.deepcopy(throughput_measure)
+            best_configuration = copy.deepcopy(throughput_measure)
 
         print(throughput_measure)
         results.append(throughput_measure.as_dict())
@@ -112,11 +112,11 @@ def perform_test(command_prefix, opt_args, args):
             opt_args[0].get_next_value()
 
     if store_in_db:
-        test_repository.update(test_id, test_type, opt_args, time_per_test, best_parameters.as_dict())
+        test_repository.update(test_id, test_type, opt_args, time_per_test, best_configuration.as_dict())
         test_repository.client.close()
         protocol_repository.client.close()
-    print('Best configuration: {0}'.format(best_parameters))
-    return test_id, best_parameters.as_dict(), results
+    print('Best configuration: {0}'.format(best_configuration))
+    return test_id, best_configuration.as_dict(), results
 
 def command_executor(command, transport_layer_protocol, reversed_transmission_direction):
     output = subprocess.check_output(command).decode().splitlines()

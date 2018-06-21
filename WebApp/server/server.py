@@ -39,6 +39,45 @@ def run_test():
         mimetype = 'application/json',
     )
 
+@app.route("/tcp/test/<test_id>", methods=["GET"])
+def get_tcp_by_test_id(test_id):
+    tcp_repository = ProtocolRepositoryFactory().get_repository_by_type(ProtocolRepositoryFactory.TCP);
+    data = json.dumps(tcp_repository.get_all_by_test_id(test_id), cls=MongoDBEncoder)
+    return app.response_class(
+        response = data,
+        status = 200,
+        mimetype = 'application/json',
+    )
+@app.route("/udp/test/<test_id>", methods=["GET"])
+def get_udp_by_test_id(test_id):
+    udp_repository = ProtocolRepositoryFactory().get_repository_by_type(ProtocolRepositoryFactory.UDP);
+    data = json.dumps(udp_repository.get_all_by_test_id(test_id), cls=MongoDBEncoder)
+    return app.response_class(
+        response = data,
+        status = 200,
+        mimetype = 'application/json',
+    )
+
+@app.route("/tcp_reverse/test/<test_id>", methods=["GET"])
+def get_tcp_reverse_by_test_id(test_id):
+    tcp_reverse_repository = ProtocolRepositoryFactory().get_repository_by_type(ProtocolRepositoryFactory.TCP_R);
+    data = json.dumps(tcp_reverse_repository.get_all_by_test_id(test_id), cls=MongoDBEncoder)
+    return app.response_class(
+        response = data,
+        status = 200,
+        mimetype = 'application/json',
+    )
+
+@app.route("/udp_reverse/test/<test_id>", methods=["GET"])
+def get_udp_reverse_by_test_id(test_id):
+    udp_reverse_repository = ProtocolRepositoryFactory().get_repository_by_type(ProtocolRepositoryFactory.UDP_R);
+    data = json.dumps(udp_reverse_repository.get_all_by_test_id(test_id), cls=MongoDBEncoder)
+    return app.response_class(
+        response = data,
+        status = 200,
+        mimetype = 'application/json',
+    )
+
 def get_test_params(request):
     ip = request.form['ip_address']
     transport_layer_protocol = request.form['protocol']

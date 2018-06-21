@@ -3,7 +3,7 @@ import TimePerTestForm from "./TimePerTestForm";
 var $ = require('jquery');
 import React, { Component } from 'react'
 import { FormGroup, Radio, FormControl, HelpBlock, Checkbox, ControlLabel,
-    Button, Alert, ProgressBar } from 'react-bootstrap';
+    Button, Alert } from 'react-bootstrap';
 
 import IPForm from "./IPForm";
 import ResultsView from "./ResultsView";
@@ -53,7 +53,7 @@ export default class PerformTestMenu extends Component {
         $.post(window.location.href + 'run', requestData, (data) => {
             this.setState({measureData: data});
             this.setState({optimizationParameters: optimizationParameters});
-            console.log(this.state.measureData);
+            console.log('measured data:', this.state.measureData);
             this.setState({dataReceived: true});
         })
     }
