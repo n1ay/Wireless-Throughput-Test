@@ -61,7 +61,7 @@ export default class ResultsView extends Component {
         return (
             <div>
                 <Alert bsStyle="success" className='hint-alert'>Green row indicates the best configuration</Alert>
-                <BootstrapTable 
+                <BootstrapTable
                     striped
                     keyField='_id'
                     data={ results }
