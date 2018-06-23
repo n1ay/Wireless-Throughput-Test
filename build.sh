@@ -11,5 +11,6 @@ back_to_main_dir() {
 sudo pip3 install -r python-requirements.txt
 cd WebApp/static
 npm install
+npm run build
 cd ../..
 trap back_to_main_dir INT
