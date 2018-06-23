@@ -7,8 +7,6 @@ from utils import *
 from mongodb_encoder import MongoDBEncoder
 import json
 
-import random
-
 app = Flask(__name__, static_folder="../static/dist", template_folder="../static")
 
 def get_hello():
