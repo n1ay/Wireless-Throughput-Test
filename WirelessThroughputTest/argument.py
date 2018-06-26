@@ -1,11 +1,14 @@
 class Argument:
-    def __init__(self, name, flag, min_val, max_val, get_next_value_method):
+    def __init__(self, name, flag, min_val, max_val, get_next_value_method, default_val=None):
         self.name = name
         self.flag = flag
         self.min_val = min_val
         self.max_val = max_val
         self.get_next_value_method = get_next_value_method
-        self.value = min_val
+        if default_val!=None:
+        	self.value = default_val
+        else:
+        	self.value = min_val
 
     def reset_value(self):
         self.value = self.min_val

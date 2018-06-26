@@ -28,3 +28,6 @@ class ProtocolRepository:
 
     def get_all_by_test_id(self, id):
         return list(self.db[self.collection].find({'test_id': ObjectId(id)}))
+        
+    def add_all(self, lst):
+    	return self.db[self.collection].insert(lst)
