@@ -1,6 +1,6 @@
 #!/bin/bash
 
 cd WebApp/server
-uwsgi --http 127.0.0.1:5000 --wsgi-file main_app.py --callable app --processes 4 --threads 2 --stats 127.0.0.1:9000
+pipenv uwsgi --http 127.0.0.1:5000 --wsgi-file main_app.py --callable app --processes 4 --threads 2 --stats 127.0.0.1:9000
 cd ../..
 trap ../.. INT
