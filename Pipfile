@@ -4,20 +4,20 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-certifi = "==2018.4.16"
-chardet = "==3.0.4"
-click = "==6.7"
-idna = "==2.7"
-itsdangerous = "==0.24"
-pymongo = "==3.6.1"
-"urllib3" = "==1.23"
-Flask = "==1.0.2"
-"Jinja2" = "==2.10"
-MarkupSafe = "==1.0"
-Werkzeug = "==0.14.1"
+certifi = ">=2018.4.16"
+chardet = ">=3.0.4"
+click = ">=6.7"
+idna = ">=2.7"
+itsdangerous = ">=0.24"
+pymongo = ">=3.6.1"
+"urllib3" = ">=1.23"
+Flask = ">=1.0.2"
+"Jinja2" = ">=2.10"
+MarkupSafe = ">=1.0"
+Werkzeug = ">=0.14.1"
 uwsgi = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.5"
+python_version = "3"

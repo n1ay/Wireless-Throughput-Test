@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request
 import sys
 sys.path.append('../../WirelessThroughputTest/')
-sys.path.append('../../Database')
+sys.path.append('../../Database/')
 from main import *
 from utils import *
 from mongodb_encoder import MongoDBEncoder

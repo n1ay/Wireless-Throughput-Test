@@ -1,11 +1,12 @@
 from pymongo import MongoClient
 from bson import ObjectId
 from throughput_measure import ThroughputMeasure
+from db_config import *
 
 class ProtocolRepository:
-    def __init__(self, ip='localhost', port=27017):
+    def __init__(self, ip=db_ip_address, port=db_port):
         self.client = MongoClient(ip, port)
-        self.db = self.client['wifi-throughput-test']
+        self.db = self.client[db_name]
         self.collection = None
 
     def add(self, throughput_measure: ThroughputMeasure):

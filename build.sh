@@ -8,11 +8,6 @@ back_to_main_dir() {
 	fi
 }
 
-if [ -z $(pip freeze | grep pipenv) ]
-then
-	sudo pip3 install pipenv
-fi
-
 pipenv update
 cd WebApp/static
 npm install
