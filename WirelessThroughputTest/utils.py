@@ -45,3 +45,7 @@ def get_test_type(transport_layer_protocol, reversed_transmission_direction):
                 test_type = TCP
 
         return test_type
+
+#mean implementation immune to numeric overflow
+def mean(actual_number_of_elements, actual_mean, new_element):
+    return actual_number_of_elements/(actual_number_of_elements+1)*actual_mean + new_element/(actual_number_of_elements+1)

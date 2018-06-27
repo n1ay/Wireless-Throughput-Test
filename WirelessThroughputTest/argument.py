@@ -5,10 +5,17 @@ class Argument:
         self.min_val = min_val
         self.max_val = max_val
         self.get_next_value_method = get_next_value_method
+        self.forbidden_values = set()
         if default_val!=None:
-        	self.value = default_val
+            self.value = default_val
         else:
-        	self.value = min_val
+            self.value = min_val
+        self.domain_length = 0
+
+        if get_next_value_method=='multiply':
+            self.step = 2
+        elif get_next_value_method=='add':
+            self.step = 500
 
     def reset_value(self):
         self.value = self.min_val
@@ -17,16 +24,18 @@ class Argument:
         return self.value >= self.max_val
 
     def get_next_value(self) -> int:
-
         ret_value = self.value
 
         if self.value <= self.max_val:
             if self.get_next_value_method == 'multiply':
-                self.value = min(self.value*2, self.max_val)
+                self.value = min(self.value*self.step, self.max_val)
             elif self.get_next_value_method == 'add':
-                self.value = min(self.min_val+self.value, self.max_val)
-
+                self.value = min(self.step+self.value, self.max_val)
         return ret_value
 
-    def get_value(self) -> int:
-        return self.value
+    def has_forbidden_value(self):
+        for i in self.forbidden_values:
+            if i==self.value:
+                return True
+        return False
+

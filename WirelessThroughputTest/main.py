@@ -53,110 +53,115 @@ def command_builder(input_args):
 
 #main optimization algorithm
 def perform_full_optimization(command_prefix, opt_args, args):
-	results = []
+    results = []
 
-	(time_per_test, transport_layer_protocol, reversed_transmission_direction, store_in_db) = args
+    (time_per_test, transport_layer_protocol, reversed_transmission_direction, store_in_db) = args
 
-	print('Performing {0} throughput test'.format(get_test_type(transport_layer_protocol, reversed_transmission_direction)))
+    print('Performing {0} throughput test'.format(get_test_type(transport_layer_protocol, reversed_transmission_direction)))
 
-	test_id = ObjectId()
-	test_type = get_test_type(transport_layer_protocol, reversed_transmission_direction)
-	if store_in_db:
-		protocol_repository_factory = ProtocolRepositoryFactory()
-		protocol_repository = protocol_repository_factory.get_repository(transport_layer_protocol, reversed_transmission_direction)
+    test_id = ObjectId()
+    test_type = get_test_type(transport_layer_protocol, reversed_transmission_direction)
+    if store_in_db:
+        protocol_repository_factory = ProtocolRepositoryFactory()
+        protocol_repository = protocol_repository_factory.get_repository(transport_layer_protocol, reversed_transmission_direction)
 
-	best_throughput = 0
-	best_configuration = None
-	optimum_found = False
-	if len(opt_args)==1:
-		best_configuration, results = optimize_all_params(command_prefix, opt_args, args, test_id)
-	else:
-		for i in range(10):
-			best_configuration_iteration, results_iteration = optimize_all_params(command_prefix, opt_args, args, test_id)
-			results+=results_iteration
-	
-			if best_configuration != None:
-				if best_configuration_iteration.throughput < best_throughput:
-					optimum_found = False
-					continue
-				for i in best_configuration.args.keys():
-					if best_configuration_iteration.args[i]!=best_configuration.args[i]:
-						optimum_found = False
-						break
-			
-			if best_configuration_iteration.throughput > best_throughput:
-				best_throughput = best_configuration_iteration.throughput
-				best_configuration = best_configuration_iteration
+    best_throughput = 0
+    best_configuration = None
+    if len(opt_args)==1:
+        best_configuration, results = optimize_all_params(command_prefix, opt_args, args, test_id)
+    else:
+        for i in range(optimization_algorithm_iterations):
+            best_configuration_iteration, results_iteration = optimize_all_params(command_prefix, opt_args, args, test_id)
+            results+=results_iteration
 
-			if optimum_found:
-				break
-			
-			optimum_found = True
+            if best_configuration_iteration == None:
+                break
 
-	test_instance = TestInstance(test_id, test_type, opt_args, time_per_test, best_configuration)
-	if store_in_db:
-	    test_repository = TestInstanceRepository()
-	    test_repository.add(test_instance)
-	    test_repository.client.close()
-	    protocol_repository.add_all(results)
-	    protocol_repository.client.close()
+            if best_configuration_iteration.throughput > best_throughput:
+                best_throughput = best_configuration_iteration.throughput
+                best_configuration = best_configuration_iteration
 
-	print('Best configuration: {0}'.format(best_configuration))
-	return test_instance, results
-	
+    test_instance = TestInstance(test_id, test_type, opt_args, time_per_test, best_configuration)
+    if store_in_db:
+        test_repository = TestInstanceRepository()
+        test_repository.add(test_instance)
+        test_repository.client.close()
+        protocol_repository.add_all(results)
+        protocol_repository.client.close()
+
+    print('Best configuration: {0}'.format(best_configuration))
+    return test_instance, results
+
 
 #loop optimize_one_param(...) through all parameters
 def optimize_all_params(command_prefix, opt_args, args, test_id):
-	results = []
-	(time_per_test, transport_layer_protocol, reversed_transmission_direction, store_in_db) = args
+    results = []
 
-	best_throughput = 0
-	best_configuration = None
-	for i in range(len(opt_args)):
-		best_configuration_iteration, results_iteration = optimize_one_param(command_prefix, opt_args, args, i, test_id)
-		results+=results_iteration
-		if best_configuration_iteration.throughput > best_throughput:
-			best_throughput = best_configuration_iteration.throughput
-			best_configuration = best_configuration_iteration
-		for i in opt_args:
-			i.value = best_configuration.args[i.name]
-			
-	return best_configuration, results
+    best_throughput = 0
+    best_configuration = None
+    for i in range(len(opt_args)):
+        best_configuration_iteration, results_iteration = optimize_one_param(command_prefix, opt_args, args, i, test_id)
+
+        if results_iteration != []:
+            results+=results_iteration
+            mean_value = 0
+            for j in range(len(results_iteration)):
+                mean_value = mean(j, mean_value, results_iteration[j]['throughput'])
+            for j in range(len(results_iteration)):
+                if (results_iteration[j]['throughput'] < mean_value) and (len(opt_args[i].forbidden_values)<opt_args[i].domain_length-2):
+                    opt_args[i].forbidden_values.add(results_iteration[j][opt_args[i].name])
+
+            if best_configuration_iteration.throughput > best_throughput:
+                best_throughput = best_configuration_iteration.throughput
+                best_configuration = best_configuration_iteration
+            for i in opt_args:
+                i.value = best_configuration.args[i.name]
+
+    return best_configuration, results
 
 #optimize one parameter at time
 def optimize_one_param(command_prefix, opt_args, args, param_index, test_id):
-	results = []
-	(time_per_test, transport_layer_protocol, reversed_transmission_direction, store_in_db) = args
+    results = []
+    (time_per_test, transport_layer_protocol, reversed_transmission_direction, store_in_db) = args
 
-	best_throughput = 0
-	best_configuration = None
-	opt_args[param_index].reset_value()
-	while(True):
-		actual_command = copy.deepcopy(command_prefix)
-		for i in opt_args:
-			actual_command.append(i.flag)
-			actual_command.append(str(i.value))
+    best_throughput = 0
+    best_configuration = None
+    opt_args[param_index].reset_value()
+    while(True):
 
-		throughput = command_executor(actual_command, transport_layer_protocol, reversed_transmission_direction)
-		throughput_measure = ThroughputMeasure(throughput, transport_layer_protocol, reversed_transmission_direction, test_id)
+        actual_command = copy.deepcopy(command_prefix)
+        if opt_args[param_index].has_forbidden_value():
+            if opt_args[param_index].has_max_value():
+                return best_configuration, results
+            opt_args[param_index].get_next_value()
+            continue
 
-		for i in opt_args:
-			throughput_measure.args[i.name]=i.value
+        for i in opt_args:
+            actual_command.append(i.flag)
+            actual_command.append(str(i.value))
 
-		if throughput > best_throughput:
-			best_throughput = throughput
-			best_configuration = copy.deepcopy(throughput_measure)
+        throughput = command_executor(actual_command, transport_layer_protocol, reversed_transmission_direction)
+        throughput_measure = ThroughputMeasure(throughput, transport_layer_protocol, reversed_transmission_direction, test_id)
 
-		print(throughput_measure)
-		results.append(throughput_measure.as_dict())
+        for i in opt_args:
+            throughput_measure.args[i.name]=i.value
 
-		if opt_args[param_index].has_max_value():
-			break
-			
-		opt_args[param_index].get_next_value()
+        if throughput > best_throughput:
+            best_throughput = throughput
+            best_configuration = copy.deepcopy(throughput_measure)
 
-	opt_args[param_index].value = best_configuration.args[opt_args[param_index].name]
-	return best_configuration, results
+        print(throughput_measure)
+        results.append(throughput_measure.as_dict())
+
+        if opt_args[param_index].has_max_value():
+            break
+
+        opt_args[param_index].get_next_value()
+
+    opt_args[param_index].value = best_configuration.args[opt_args[param_index].name]
+    if opt_args[param_index].domain_length == 0:
+        opt_args[param_index].domain_length = len(results)
+    return best_configuration, results
 
 #executes command, parses results and returns only mean throughput value
 def command_executor(command, transport_layer_protocol, reversed_transmission_direction):
@@ -228,9 +233,9 @@ def run_tests(input_args):
 
 #main function used to run script from command line
 def main():
-	parser = build_parser()
-	input_args = parse_args(parser)
-	return run_tests(input_args)
+    parser = build_parser()
+    input_args = parse_args(parser)
+    return run_tests(input_args)
 
 if __name__ == '__main__':
     main()

@@ -20,3 +20,5 @@ tcp_args_extra = ['']
 
 
 # --------------------------------------------------------------
+
+optimization_algorithm_iterations = 8
