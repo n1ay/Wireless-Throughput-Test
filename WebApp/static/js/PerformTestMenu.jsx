@@ -120,7 +120,6 @@ export default class PerformTestMenu extends Component {
     render() {
         return (
             <div>
-                <LineChart />
                 <form>
                     <div className='flex-container-row'>
                         <IPForm

@@ -5,6 +5,7 @@ import React, { Component } from 'react'
 import { Button, Carousel, Alert, ButtonToolbar, MenuItem, DropdownButton } from 'react-bootstrap';
 import Utils from "./Utils";
 import ResultsView from "./ResultsView";
+import LineChart from "./LineChart";
 
 export default class BrowseHistoricalResultsMenu extends Component {
     constructor(props) {
@@ -95,6 +96,7 @@ export default class BrowseHistoricalResultsMenu extends Component {
     render() {
         const index = this.state.carouselIndex;
         const direction = this.state.direction;
+        const carouselItemHeight = '80em';
         return (
             <div className='flex-container-column'>
                 <Carousel
@@ -103,6 +105,7 @@ export default class BrowseHistoricalResultsMenu extends Component {
                     onSelect={this.handleSelectCarousel}
                     controls = {false}
                     indicators = {false}
+                    style={{height: carouselItemHeight}}
                 >
                     <Carousel.Item>
                         <Alert bsStyle="info" className='hint-alert'>Click on row to get more details</Alert>
@@ -111,7 +114,6 @@ export default class BrowseHistoricalResultsMenu extends Component {
                                 handleOnSelectRow={this.handleOnSelectRow}
                                 loading={this.state.loading}/>
                             }
-                            <div className='space'> </div>
                             <div className='flex-container-row'>
                                 <Button bsStyle='success' bsSize='large' onClick={this.sendTestsHistoryRequest}>
                                     Refresh
@@ -122,7 +124,23 @@ export default class BrowseHistoricalResultsMenu extends Component {
                         {this.state.certainTestDataReceived && <ResultsView data={this.state.certainTestData} params={this.state.certainTestParameters} />}
                         <div className='flex-container-row'>
                             <Button bsStyle='success' bsSize='large' onClick={() => {this.setState({carouselIndex: 0})}}>
-                                 Back
+                                {'<<'}
+                            </Button>
+                            <div className='space'> </div>
+                            <Button bsStyle='success' bsSize='large' onClick={() => {this.setState({carouselIndex: 2})}}>
+                                {'>'}
+                            </Button>
+                        </div>
+                    </Carousel.Item>
+                    <Carousel.Item>
+                        {this.state.certainTestDataReceived && <LineChart data={this.state.certainTestData} />}
+                        <div className='flex-container-row'>
+                            <Button bsStyle='success' bsSize='large' onClick={() => {this.setState({carouselIndex: 0})}}>
+                                {'<<'}
+                            </Button>
+                            <div className='space'> </div>
+                            <Button bsStyle='success' bsSize='large' onClick={() => {this.setState({carouselIndex: 1})}}>
+                                {'<'}
                             </Button>
                         </div>
                     </Carousel.Item>

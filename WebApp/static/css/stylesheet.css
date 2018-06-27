@@ -64,3 +64,8 @@ div .space {
     font-weight: 300;
     color: darkred;
 }
+
+Button {
+    width: 7em;
+    text-align: center;
+}

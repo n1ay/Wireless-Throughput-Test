@@ -3,18 +3,39 @@ import ReactDOM from 'react-dom';
 import { Line } from 'react-chartjs-2';
 import Slider from 'rc-slider';
 import { FormGroup, Radio, ControlLabel, Alert } from 'react-bootstrap';
+import Utils from "./Utils";
 
 export default class LineChart extends Component {
     constructor(props) {
         super(props);
+
+        this.beforeBodyTooltipCallback = this.beforeBodyTooltipCallback.bind(this);
+    }
+
+    beforeBodyTooltipCallback(tooltipItem, data) {
+        const results = this.props.data.results.map(Utils.prettyFormat);
+        const showParams = ['buffer_length', 'window_size', 'maximum_segment_size'];
+        let text = [];
+        for(let i of Object.keys(results[tooltipItem[0].index])) {
+            for(let j of showParams)
+                if(i===j)
+                    text.push(Utils.formatParameters(i)+': '+results[tooltipItem[0].index][i]);
+        }
+        return text;
     }
 
     render() {
 
+        const results = this.props.data.results;
+        const throughputMeasurements = results.map(x => x.throughput);
+        const chartLabels = new Array(throughputMeasurements.length);
+        for(let i=0; i<throughputMeasurements.length; i++)
+            chartLabels[i]=i;
+
         const data = {
-            labels: ['l1', 'l2', 'l3', 'l4', 'l5', 'l6'],
+            labels: chartLabels,
             datasets: [{
-                label: 'dummy label',
+                label: 'Throughput',
                 fill: false,
                 lineTension: 0.1,
                 backgroundColor: 'rgba(75,192,192,1)',
@@ -30,51 +51,44 @@ export default class LineChart extends Component {
                 pointHoverBackgroundColor: 'rgba(75,192,192,1)',
                 pointHoverBorderColor: 'rgba(220,220,220,1)',
                 pointHoverBorderWidth: 2,
-                pointRadius: 1,
+                pointRadius: 2,
                 pointHitRadius: 10,
-                data: [1,2,3,4,5,6,7]
+                data: throughputMeasurements,
             }]
+        };
+
+        const options = {
+            legend: {
+                position: 'bottom'
+            },
+            tooltips: {
+                    callbacks: {
+                        title: (tooltipItem, data) => {
+                            return 'Measurement index : ' + tooltipItem[0].xLabel;
+                        },
+                        beforeBody: this.beforeBodyTooltipCallback,
+                        label: (tooltipItem, data) => {
+                            return data.datasets[0].label + ': ' + Utils.getValueWithMetricPrefix(tooltipItem.yLabel, true);
+                        }
+                }
+            },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        callback: (value, index, values) => {
+                            return Utils.getValueWithMetricPrefix(value, true);
+                        }
+                    }
+                }]
+            }
         };
 
         return (
             <div>
-                <h2>Throughput line chart</h2>
-                <Line data={data} />
-                <div className='flex-container-row'>
-                    <div className='flex-container-column'>
-                        <ControlLabel className='projection-label'>Choose parameter to visualize throughput~[chosen parameter] graph </ControlLabel>
-                        <FormGroup>
-                            <Radio name={"lineChartRadioGroup"+this.props.group}>
-                                Buffer Length
-                            </Radio>
-                            <Radio name={"lineChartRadioGroup"+this.props.group}>
-                                Window Size
-                            </Radio>
-                            <Radio name={"lineChartRadioGroup"+this.props.group}>
-                                Maximum Segment Size
-                            </Radio>
-                            <Alert bsStyle="warning" className='projection-alert'>Since there is a feature to optimize throughput with more than one parameter,
-                                it is impossible to draw all parameters graph, because it will be 4D graph and 3D graphs are often hard to analyse.
-                                That is why here is a projection of results onto a plane (2D chart).</Alert>
-                        </FormGroup>
-                    </div>
-                    <div className='space'> </div>
-                    <div className='flex-container-column'>
-                        <ControlLabel className='projection-label'>Choose values of parameters to project at</ControlLabel>
-                        <br/>
-                        <ControlLabel className='projection-value'>Buffer length projection value: </ControlLabel>
-                        <br/>
-                        <Slider min={0} max={5} className='chart-slider'/>
-                        <br/>
-                        <ControlLabel className='projection-value'>Window size projection value: </ControlLabel>
-                        <br/>
-                        <Slider min={0} max={5} className='chart-slider'/>
-                        <br/>
-                        <ControlLabel className='projection-value'>Maximum segment size projection value: </ControlLabel>
-                        <br/>
-                        <Slider min={0} max={5} className='chart-slider'/>
-                        </div>
-                    </div>
+                <h2 style={{'textAlign': 'center'}}>Throughput chart</h2>
+                <h4 style={{'textAlign': 'center'}}>Optimization algorithm consecutive throughput measurements</h4>
+                <br/>
+                <Line data={data} options={options} />
             </div>
         );
     }

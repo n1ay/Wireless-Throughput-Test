@@ -47,11 +47,11 @@ export default class HistoryBrowser extends Component {
 
         const paginationOptions = {
             sizePerPageList: [{
-                text: '25', value: 25
-            }, {
-                text: '50', value: 50
+                text: '20 items per page', value: 20
             }],
-            hidePageListOnlyOnePage: false
+            hidePageListOnlyOnePage: false,
+            hideSizePerPage: true,
+            showTotal: true,
         };
 
         return (

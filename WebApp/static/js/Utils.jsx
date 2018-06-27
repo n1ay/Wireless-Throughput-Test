@@ -11,7 +11,7 @@ export default class Utils {
         const newObject = Object.assign({}, object);
         for(let i of propertiesToFormatList) {
             if (i===propertiesToFormatList[0])
-                newObject[i] = Utils.getValueWithMetricPrefix(object[i]) + 'bits/s';
+                newObject[i] = Utils.getValueWithMetricPrefix(object[i], true);
             else if (properties.includes(i)) {
                 newObject[i] = Utils.getValueWithMetricPrefix(object[i])
             }
@@ -19,15 +19,24 @@ export default class Utils {
         return newObject;
     }
 
-    static getValueWithMetricPrefix(value) {
-        if (value >= 1024 * 1024 * 1024)
-            return value / (1024 * 1024 * 1024) + ' G';
-        else if (value >= 1024 * 1024)
-            return value / (1024 * 1024) + ' M';
-        else if (value >= 1024)
-            return value / 1024 + ' K';
-        else
+    static formatNumber(value) {
+        if(value===Math.round(value))
             return value;
+        return value.toFixed(1);
+    }
+
+    static getValueWithMetricPrefix(value, addBps=false) {
+        let val=Utils.formatNumber(value);
+        if (value >= 1024 * 1024 * 1024)
+            val = Utils.formatNumber(value / (1024 * 1024 * 1024)) + ' G';
+        else if (value >= 1024 * 1024)
+            val = Utils.formatNumber(value / (1024 * 1024)) + ' M';
+        else if (value >= 1024)
+            val = Utils.formatNumber(value / 1024) + ' K';
+
+        if(addBps)
+            val+='bits/s';
+        return val;
     }
 
     static formatParameters(param) {

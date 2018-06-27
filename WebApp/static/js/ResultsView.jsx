@@ -42,6 +42,8 @@ export default class ResultsView extends Component {
         const results = dataReceived.results.map(Utils.prettyFormat);
         const rowStyle = (row) => {
             const style = {};
+            if(!row)
+                return style;
             if(row._id === best_result._id) {
                 style.backgroundColor = '#5cb85c';
                 style.color = 'white';
@@ -51,11 +53,11 @@ export default class ResultsView extends Component {
 
         const paginationOptions = {
             sizePerPageList: [{
-                text: '25', value: 25
-            }, {
-                text: '50', value: 50
+                text: '20 items per page', value: 20
             }],
-            hidePageListOnlyOnePage: false
+            hidePageListOnlyOnePage: false,
+            hideSizePerPage: true,
+            showTotal: true,
         };
 
         return (
