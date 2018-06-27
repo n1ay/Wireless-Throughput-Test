@@ -59,12 +59,12 @@ export default class LineChart extends Component {
 
         const options = {
             legend: {
-                position: 'bottom'
+                position: 'right'
             },
             tooltips: {
                     callbacks: {
                         title: (tooltipItem, data) => {
-                            return 'Measurement index : ' + tooltipItem[0].xLabel;
+                            return 'Measurement number : ' + tooltipItem[0].xLabel;
                         },
                         beforeBody: this.beforeBodyTooltipCallback,
                         label: (tooltipItem, data) => {
@@ -74,12 +74,22 @@ export default class LineChart extends Component {
             },
             scales: {
                 yAxes: [{
+                    scaleLabel: {
+							display: true,
+							labelString: 'Throughput'
+						},
                     ticks: {
                         callback: (value, index, values) => {
                             return Utils.getValueWithMetricPrefix(value, true);
                         }
                     }
-                }]
+                }],
+                xAxes: [{
+                    scaleLabel: {
+							display: true,
+							labelString: 'Measurement number'
+						}
+                }],
             }
         };
 
@@ -89,6 +99,7 @@ export default class LineChart extends Component {
                 <h4 style={{'textAlign': 'center'}}>Optimization algorithm consecutive throughput measurements</h4>
                 <br/>
                 <Line data={data} options={options} />
+                <div className='space'> </div>
             </div>
         );
     }

@@ -3,7 +3,7 @@ import TimePerTestForm from "./TimePerTestForm";
 var $ = require('jquery');
 import React, { Component } from 'react'
 import { FormGroup, Radio, FormControl, HelpBlock, Checkbox, ControlLabel,
-    Button, Alert, Panel } from 'react-bootstrap';
+    Button, Alert, Panel, Carousel } from 'react-bootstrap';
 
 import IPForm from "./IPForm";
 import ResultsView from "./ResultsView";
@@ -24,7 +24,10 @@ export default class PerformTestMenu extends Component {
             saveResultsInDb: false,
             dataReceived: false,
             optimizationParameters: {},
-            measureData: {}
+            measureData: {},
+            testInProgress: false,
+            carouselIndex: 0,
+            direction: null,
         };
 
         this.handleIPFormChange = this.handleIPFormChange.bind(this);
@@ -32,9 +35,11 @@ export default class PerformTestMenu extends Component {
         this.handleProtocolChange = this.handleProtocolChange.bind(this);
         this.handleTransmissionDirectionChange = this.handleTransmissionDirectionChange.bind(this);
         this.sendTestRequest = this.sendTestRequest.bind(this);
+        this.handleSelectCarousel = this.handleSelectCarousel.bind(this);
     }
 
     sendTestRequest() {
+        this.setState({testInProgress: true});
         const requestData = {
             'ip_address': this.state.serverIPAddress,
             'protocol': this.state.protocol,
@@ -51,9 +56,12 @@ export default class PerformTestMenu extends Component {
             maximum_segment_size: this.state.useMaximumSegmentSize
         };
         $.post(window.location.href + 'run', requestData, (data) => {
-            this.setState({measureData: data});
-            this.setState({optimizationParameters: optimizationParameters});
-            this.setState({dataReceived: true});
+            this.setState({
+                measureData: data,
+                optimizationParameters: optimizationParameters,
+                dataReceived: true,
+                testInProgress: false
+            });
         })
     }
 
@@ -116,7 +124,16 @@ export default class PerformTestMenu extends Component {
         return this.getTimePerTestFormValidationState()==='error'?"error-msg":'error-msg-hidden'
     }
 
+    handleSelectCarousel(selectedIndex, e) {
+        this.setState({
+            carouselIndex: selectedIndex,
+            direction: e.direction
+        });
+    }
+
     render() {
+        const index = this.state.carouselIndex;
+        const direction = this.state.direction;
         return (
             <div>
                 <form>
@@ -147,14 +164,37 @@ export default class PerformTestMenu extends Component {
 		                    {this.renderSaveInDbCheckbox()}
 		                </div>
 		                <div className='flex-container-row'>
-		                    <Button disabled={!this.allParametersAreOk()} bsStyle='success' bsSize='large' onClick={this.sendTestRequest}>
-		                        Run test!
+		                    <Button disabled={!this.allParametersAreOk() || this.state.testInProgress} bsStyle='success' bsSize='large' onClick={this.sendTestRequest}>
+                                {this.state.testInProgress?'Running...':'Run test!'}
 		                    </Button>
 		                </div>
 		                </Panel.Body></Panel>
 	                </div>
                 </form>
-                {this.state.dataReceived && <ResultsView data={this.state.measureData} params={this.state.optimizationParameters}/>}
+                {this.state.dataReceived && <div>
+                    <Carousel
+                        activeIndex={index}
+                        direction={direction}
+                        onSelect={this.handleSelectCarousel}
+                        controls = {false}
+                        indicators = {false}>
+                        <Carousel.Item>
+                            <ResultsView data={this.state.measureData} params={this.state.optimizationParameters} />
+                        </Carousel.Item>
+                        <Carousel.Item>
+                            <LineChart data={this.state.measureData} />
+                        </Carousel.Item>
+                    </Carousel>
+                    <div className='flex-container-row'>
+                        <Button bsStyle='success' bsSize='large' onClick={() => {this.setState({carouselIndex: 0})}}>
+                            {'<'}
+                        </Button>
+                        <div className='space'> </div>
+                        <Button bsStyle='success' bsSize='large' onClick={() => {this.setState({carouselIndex: 1})}}>
+                            {'>'}
+                        </Button>
+                    </div>
+                </div>}
             </div>
         );
     }
@@ -199,7 +239,7 @@ export default class PerformTestMenu extends Component {
                     <Checkbox onChange={() => this.setState({useBufferLength: !this.state.useBufferLength})} checked={this.state.useBufferLength}>buffer length</Checkbox>
                     <Checkbox disabled={this.state.protocol==='udp'} onChange={() => this.setState({useWindowSize: !this.state.useWindowSize})} checked={this.state.useWindowSize}>window size</Checkbox>{' '}
                     <Checkbox disabled={this.state.protocol==='udp'} onChange={() =>this.setState({useMaximumSegmentSize: !this.state.useMaximumSegmentSize})} checked={this.state.useMaximumSegmentSize}>maximum segment size</Checkbox>
-                    <Alert bsStyle="warning">For UDP, buffer length is only suitable parameter</Alert>
+                    <Alert bsStyle="warning">For UDP buffer length <br/> is only suitable parameter</Alert>
                 </FormGroup>
             </div>
         );
