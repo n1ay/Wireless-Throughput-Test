@@ -99,7 +99,7 @@ For TCP server -> client transmission best result was:
   * maximum segment size: 2264
 
 #### Comment on results
-About server -> client transmission(graph below):
+About server -> client transmission (graph below):  
 First of all, all the results I've got are very similar. After first few iterations of the algorithm almost all results were almost all the same. Different between max and min is less than 10%. The best value was result with mss of 802.11 standard.
 ![server -> client transmission](https://n1ay.github.io/sc.png)
 
