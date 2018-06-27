@@ -78,7 +78,6 @@ export default class BrowseHistoricalResultsMenu extends Component {
                 loading: false,
                 carouselIndex: 1,
             });
-            console.log('certain test data:', this.state.certainTestData);
         })
     }
 
@@ -89,7 +88,6 @@ export default class BrowseHistoricalResultsMenu extends Component {
                 testsHistoryData: data,
                 testsHistoryReceived: true,
             });
-            console.log('test history:', this.state.testsHistoryData);
         })
     }
 

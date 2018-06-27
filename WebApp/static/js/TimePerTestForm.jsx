@@ -9,7 +9,7 @@ export default class TimePerTestForm extends Component {
     render() {
         return (
             <div className='flex-container-column'>
-                <ControlLabel>Time per single test in seconds</ControlLabel>
+                <ControlLabel>Time per single measurement in seconds</ControlLabel>
                 <FormGroup
                     controlId="formBasicText"
                     validationState={this.props.getValidationState}
@@ -22,7 +22,7 @@ export default class TimePerTestForm extends Component {
                     />
                     <FormControl.Feedback />
                     <HelpBlock bsClass={this.props.showErrMsg}>
-                        {this.props.value < 100 ?'Please put a valid number.':'Such long tests are not recommended.'}</HelpBlock>
+                        {this.props.value <= 10 ?'Please put a valid number.':'Such long tests are not recommended.'}</HelpBlock>
                 </FormGroup>
             </div>
         );

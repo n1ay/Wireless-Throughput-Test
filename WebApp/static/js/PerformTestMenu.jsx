@@ -3,7 +3,7 @@ import TimePerTestForm from "./TimePerTestForm";
 var $ = require('jquery');
 import React, { Component } from 'react'
 import { FormGroup, Radio, FormControl, HelpBlock, Checkbox, ControlLabel,
-    Button, Alert } from 'react-bootstrap';
+    Button, Alert, Panel } from 'react-bootstrap';
 
 import IPForm from "./IPForm";
 import ResultsView from "./ResultsView";
@@ -53,7 +53,6 @@ export default class PerformTestMenu extends Component {
         $.post(window.location.href + 'run', requestData, (data) => {
             this.setState({measureData: data});
             this.setState({optimizationParameters: optimizationParameters});
-            console.log('measured data:', this.state.measureData);
             this.setState({dataReceived: true});
         })
     }
@@ -72,7 +71,7 @@ export default class PerformTestMenu extends Component {
     getTimePerTestFormValidationState() {
         if(this.state.timePerTest==='')
             return null;
-        if(/^([1-9][0-9]?)$/.test(this.state.timePerTest)) {
+        if(/^([1-9]|(10))$/.test(this.state.timePerTest)) {
             return 'success';
         }
         else return 'error';
@@ -121,36 +120,39 @@ export default class PerformTestMenu extends Component {
         return (
             <div>
                 <form>
-                    <div className='flex-container-row'>
-                        <IPForm
-                            getValidationState={this.getIPFormValidationState()}
-                            handleChange={this.handleIPFormChange}
-                            value={this.state.serverIPAddress}
-                            showErrMsg={this.showIPFormErrorMsg()}
-                        />
-                        <div className='space'> </div>
-                        <TimePerTestForm
-                            getValidationState={this.getTimePerTestFormValidationState()}
-                            handleChange={this.handleTimePerTestFormChange}
-                            value={this.state.timePerTest}
-                            showErrMsg={this.showTimePerTestErrorMsg()}
-                        />
-                    </div>
-                    <div className='flex-container-row'>
-                        {this.renderRadioProtocol()}
-                        <div className='space'> </div>
-                        {this.renderRadioTransmissionDirection()}
-                        <div className='space'> </div>
-                        {this.renderOptimizeParamsCheckbox()}
-                        <div className='space'> </div>
-                        {this.renderSaveInDbCheckbox()}
-                    </div>
-                    <div className='space'> </div>
-                    <div className='flex-container-row'>
-                        <Button disabled={!this.allParametersAreOk()} bsStyle='success' bsSize='large' onClick={this.sendTestRequest}>
-                            Run test!
-                        </Button>
-                    </div>
+                	<div className='flex-container-row'>
+                		<Panel><Panel.Body>
+		                <div className='flex-container-row'>
+		                    <IPForm
+		                        getValidationState={this.getIPFormValidationState()}
+		                        handleChange={this.handleIPFormChange}
+		                        value={this.state.serverIPAddress}
+		                        showErrMsg={this.showIPFormErrorMsg()}
+		                    />
+		                    <div className='space'> </div>
+		                    <TimePerTestForm
+		                        getValidationState={this.getTimePerTestFormValidationState()}
+		                        handleChange={this.handleTimePerTestFormChange}
+		                        value={this.state.timePerTest}
+		                        showErrMsg={this.showTimePerTestErrorMsg()}
+		                    />
+		                </div>
+		                <div className='flex-container-row'>
+		                    {this.renderRadioProtocol()}
+		                    <div className='space'> </div>
+		                    {this.renderRadioTransmissionDirection()}
+		                    <div className='space'> </div>
+		                    {this.renderOptimizeParamsCheckbox()}
+		                    <div className='space'> </div>
+		                    {this.renderSaveInDbCheckbox()}
+		                </div>
+		                <div className='flex-container-row'>
+		                    <Button disabled={!this.allParametersAreOk()} bsStyle='success' bsSize='large' onClick={this.sendTestRequest}>
+		                        Run test!
+		                    </Button>
+		                </div>
+		                </Panel.Body></Panel>
+	                </div>
                 </form>
                 {this.state.dataReceived && <ResultsView data={this.state.measureData} params={this.state.optimizationParameters}/>}
             </div>

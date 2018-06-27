@@ -1,26 +1,29 @@
 var $ = require('jquery');
 import React, { Component } from 'react'
-import { Button, Panel, ButtonToolbar, MenuItem, DropdownButton } from 'react-bootstrap';
+import { Button, Panel, PanelGroup, ButtonToolbar, MenuItem, DropdownButton } from 'react-bootstrap';
 import BrowseHistoricalResultsMenu from "./BrowseHistoricalResultsMenu";
 import PerformTestMenu from "./PerformTestMenu";
 
 export default class MainMenu extends Component {
 	constructor(props) {
     	super(props);
+    	
 	}
 
 	render () {
 		return (
 			<div className='flex-container-column'>
-                {this.renderPerformTestPanel()}
-                {this.renderBrowseHistoricalResultsPanel()}
+				<PanelGroup defaultActiveKey={"1"} accordion id="main-menu">
+		            {this.renderPerformTestPanel()}
+		            {this.renderBrowseHistoricalResultsPanel()}
+		        </PanelGroup>
     		</div>
 		)
 	}
 
 	renderPerformTestPanel() {
 	    return (
-            <Panel>
+            <Panel eventKey="1">
                 <Panel.Heading>
                     <Panel.Title toggle>Perform Test</Panel.Title>
                 </Panel.Heading>
@@ -35,7 +38,7 @@ export default class MainMenu extends Component {
 
     renderBrowseHistoricalResultsPanel() {
 	    return (
-            <Panel>
+            <Panel eventKey="2">
                 <Panel.Heading>
                     <Panel.Title toggle>Browse Historical Results</Panel.Title>
                 </Panel.Heading>
