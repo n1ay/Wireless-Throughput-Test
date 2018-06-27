@@ -1,3 +1,5 @@
+from config import *
+
 class Argument:
     def __init__(self, name, flag, min_val, max_val, get_next_value_method, default_val=None):
         self.name = name
@@ -13,9 +15,9 @@ class Argument:
         self.domain_length = 0
 
         if get_next_value_method=='multiply':
-            self.step = 2
+            self.step = step_multiply
         elif get_next_value_method=='add':
-            self.step = 500
+            self.step = step_add
 
     def reset_value(self):
         self.value = self.min_val

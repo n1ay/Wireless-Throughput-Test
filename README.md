@@ -1,18 +1,18 @@
 
+
 # Wireless-Throughput-Test
  UniFi SDN Recruitment assignment - automated throughput test in WiFi environment.
  #### Tools:
-   * `iperf3` used for throughput measures
-   * backend written in `python3`
+   * `iperf3` used for throughput measure
    * `Flask` + `uWSGI` for serving HTTP
    * `MongoDB` used to collect results
-   * frontend in `React`
+   * `React` for front-end
+   * `python3` for back-end
 ## Test environment depiction
 #### Client
 ASUS N75SL:
-  * CPU: Intel(R) Core(TM) i5-2450M CPU @ 2.50GHz
-  * memory: SODIMM DDR3 Synchronous 1333 MHz (0,8 ns) 4GiB + 2GiB
-  * motherboard: N75SL (ASUSTeK Computer Inc.)
+  * CPU: Intel(R) Core(TM) i5-2450M CPU @ 2.50GHz 
+  * 6GiB RAM
   * network wireless interface: Centrino Wireless-N 1030 \[Rainbow Peak\]
 
 In general: 6 years old laptop.
@@ -24,7 +24,7 @@ TP LINK TL-WR340G
   * default settings
 
 ## Optimization algorithm
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+Not classical, but actually a hybrid of a few classical algorithms. It is greedy algorithm which performs search through full domain of one parameter first and other parameters are unchanged. After first loop it calculates mean of the results and excludes parameter values which gave results worse than mean. The process is repeated for every parameter. After that, next iteration starts which is the same as initial one, but already some parameters values are pruned. Algorithm stops after certain number of iterations which can be set by user.
 
 ## Installation and usage
 To properly run the application you will need to get these packages installed:
@@ -72,12 +72,40 @@ yum install python3-devel
 #### Before running
 Application uses default settings `(localhost:27017)` to connect to the database. If you want to change database related settings, feel free to modify `Database/db_config.py` file.
 
+You can change optimization algorithm parameters in `WirelessThroughputTest/config.py`.
+
 #### Running the application
 Application uses `MongoDB`, so make sure it is already running before running the application.
 Run `run.sh` script from main project directory: `./run.sh`
 Open `localhost:5000` in your browser to use the application.
 
 ## Results
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+Test was executed in closed environment, without connection to the Internet. `iperf3` parameters used:
+  * `-l` buffer length
+  * `-w` window size
+  * `-M` maximum segment size
+with `-t 6` (six seconds per single measurement)
+
+For TCP client -> server transmission best result was:
+20.1 Mbits/s with parameters:
+  * buffer length: 2K
+  * window size: 256K
+  * maximum segment size: 3500
+---
+For TCP server -> client transmission best result was:
+23.3 Mbits/s with parameters:
+  * buffer length: 1M
+  * window size: 32K
+  * maximum segment size: 2264
+
 #### Comment on results
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+About server -> client transmission:
+First of all, all the results I've got are very similar. After first few iterations of the algorithm almost all results were almost all the same. Different between max and min is less than 10%. The best value was result with mss of 802.11 standard.
+![server -> client transmission](https://n1ay.github.io/sc.png)
+
+---
+In comparison to the first one, client -> server transmission was actually a lot more chaotic. Throughput seems a little random. For exactly the same parameters two measurements differ up to 30%. Comparing both results, server -> client transmission had little window size and large buffer length, while client -> server transmission was completely opposite.
+
+![server -> client transmission](https://n1ay.github.io/cs.png)
+
+The results are not truly best configurations, but definitely they are not bad. It just somehow happened that throughput was really good at that time and it was measured. Things like that happens when we fiddle with networking, especially using such low quality hardware.
