@@ -64,9 +64,9 @@ yum install python3-devel
 #### Building the application:
   1. Clone this repository: 
     `git clone https://github.com/n1ay/Wireless-Throughput-Test.git`
-  2. Get into project main directory and run `build.sh` script:
-    `cd Wireless-Throughput-Test`
-    `./build.sh`
+  2. Get into project main directory and run `build.sh` script:  
+    `cd Wireless-Throughput-Test`  
+    `./build.sh`  
   3. It's done!
 
 #### Before running
@@ -76,7 +76,7 @@ You can change optimization algorithm parameters in `WirelessThroughputTest/conf
 
 #### Running the application
 Application uses `MongoDB`, so make sure it is already running before running the application.
-Run `run.sh` script from main project directory: `./run.sh`
+Run `run.sh` script from main project directory: `./run.sh`  
 Open `localhost:5000` in your browser to use the application.
 
 ## Results
@@ -99,12 +99,12 @@ For TCP server -> client transmission best result was:
   * maximum segment size: 2264
 
 #### Comment on results
-About server -> client transmission:
+About server -> client transmission(graph below):
 First of all, all the results I've got are very similar. After first few iterations of the algorithm almost all results were almost all the same. Different between max and min is less than 10%. The best value was result with mss of 802.11 standard.
 ![server -> client transmission](https://n1ay.github.io/sc.png)
 
 ---
-In comparison to the first one, client -> server transmission was actually a lot more chaotic. Throughput seems a little random. For exactly the same parameters two measurements differ up to 30%. Comparing both results, server -> client transmission had little window size and large buffer length, while client -> server transmission was completely opposite.
+In comparison to the first one, client -> server transmission (graph below) was actually a lot more chaotic. Throughput seems a little random. For exactly the same parameters two measurements differ up to 30%. Comparing both results, server -> client transmission had little window size and large buffer length, while client -> server transmission was completely opposite.
 
 ![server -> client transmission](https://n1ay.github.io/cs.png)
 
