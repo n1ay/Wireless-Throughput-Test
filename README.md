@@ -79,6 +79,8 @@ Application uses `MongoDB`, so make sure it is already running before running th
 Run `run.sh` script from main project directory: `./run.sh`  
 Open `localhost:5000` in your browser to use the application.
 
+If you want to run HTTP server with other ip or port you can change it directly in `run.sh` script.
+
 ## Results
 Test was executed in closed environment, without connection to the Internet. `iperf3` parameters used:
   * `-l` buffer length

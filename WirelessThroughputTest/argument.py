@@ -30,9 +30,9 @@ class Argument:
 
         if self.value <= self.max_val:
             if self.get_next_value_method == 'multiply':
-                self.value = min(self.value*self.step, self.max_val)
+                self.value = round(min(self.value*self.step, self.max_val))
             elif self.get_next_value_method == 'add':
-                self.value = min(self.step+self.value, self.max_val)
+                self.value = round(min(self.step+self.value, self.max_val))
         return ret_value
 
     def has_forbidden_value(self):
