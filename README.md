@@ -12,7 +12,7 @@
 #### Client
 ASUS N75SL:
   * CPU: Intel(R) Core(TM) i5-2450M CPU @ 2.50GHz 
-  * 6GiB RAM
+  * 6GB RAM
   * network wireless interface: Centrino Wireless-N 1030 \[Rainbow Peak\]
 
 In general: 6 years old laptop.
