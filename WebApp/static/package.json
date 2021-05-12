@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "bootstrap": "^4.1.2",
-    "chart.js": "^2.7.2",
+    "chart.js": "^2.9.4",
     "popper.js": "^1.14.4",
     "rc-slider": "^8.6.1",
     "react-bootstrap-table-next": "^0.1.13",
